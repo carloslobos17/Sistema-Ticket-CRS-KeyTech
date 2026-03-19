@@ -34,4 +34,20 @@ class Department extends Model
     {
         return $this->hasMany(Ticket::class);
     }
+
+    /**
+     * Historial de tickets que salieron de este departamento (transferidos a otro).
+     */
+    public function outgoingTransfers():HasMany
+    {
+        return $this->hasMany(TicketHistory::class, 'previous_department');
+    }
+
+    /**
+     * Historial de tickets que entraron a este departamento (transferidos desde otro).
+     */
+    public function incomingTransfers():HasMany
+    {
+        return $this->hasMany(TicketHistory::class, 'new_department');
+    }
 }

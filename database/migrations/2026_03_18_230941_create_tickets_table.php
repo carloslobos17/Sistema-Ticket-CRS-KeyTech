@@ -27,13 +27,13 @@ return new class extends Migration
             $table->string('attach', 255);
             $table->date('expiration_date');
             $table->date('closing_date');
-            $table->foreignIdFor(User::class, 'requesting_user');
-            $table->foreignIdFor(User::class, 'assigned_user')->nullable();
-            $table->foreignIdFor(HelpTopic::class);
-            $table->foreignIdFor(Priority::class);
-            $table->foreignIdFor(SlaPlan::class);
-            $table->foreignIdFor(Department::class);
-            $table->foreignIdFor(Status::class);
+            $table->foreignIdFor(User::class, 'requesting_user')->constrained();
+            $table->foreignIdFor(User::class, 'assigned_user')->nullable()->constrained();
+            $table->foreignIdFor(HelpTopic::class)->constrained();
+            $table->foreignIdFor(Priority::class)->constrained();
+            $table->foreignIdFor(SlaPlan::class)->constrained();
+            $table->foreignIdFor(Department::class)->constrained();
+            $table->foreignIdFor(Status::class)->constrained();
             $table->timestamps();
         });
     }

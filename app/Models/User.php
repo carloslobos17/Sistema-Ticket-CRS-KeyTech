@@ -71,4 +71,20 @@ class User extends Authenticatable
     {
         return $this->hasMany(TicketSolution::class);
     }
+
+    /**
+     * Historial de todas las acciones que ha realizado este usuario en el sistema.
+     */
+    public function actionsPerformed(): HasMany
+    {
+        return $this->hasMany(TicketHistory::class, 'user_id');
+    }
+
+    /**
+     * Historial de todas las veces que le han asignado un ticket a este técnico.
+     */
+    public function ticketAssignments():HasMany
+    {
+        return $this->hasMany(TicketHistory::class, 'assigned_user');
+    }
 }

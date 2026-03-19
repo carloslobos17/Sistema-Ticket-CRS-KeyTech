@@ -76,4 +76,9 @@ class Ticket extends Model
     {
         return $this->hasMany(TicketSolution::class);
     }
+
+    public function histories():HasMany
+    {
+        return $this->hasMany(TicketHistory::class)->orderBy('created_at', 'desc');
+    }
 }

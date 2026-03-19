@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Department;
 use App\Models\Ticket;
 use App\Models\User;
 use Illuminate\Database\Migrations\Migration;
@@ -13,14 +14,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('ticket_solutions', function (Blueprint $table) {
+        Schema::create('ticket_histories', function (Blueprint $table) {
             $table->id();
             $table->foreignIdFor(Ticket::class)->constrained();
             $table->foreignIdFor(User::class)->constrained();
-            $table->text('message');
-            $table->date('date');
-            $table->string('attach', 255);
-            $table->string('type')->default('public_reply');
+            $table->string('action_type');
+            $table->foreignIdFor(User::class, 'assigned_user')->constrained()->nullable();
+            $table->text('internal_note');
+            $table->foreignIdFor(Department::class, 'previous_department')->constrained();
+            $table->foreignIdFor(Department::class, 'new_department')->nullable()->constrained();
             $table->timestamps();
         });
     }
@@ -30,6 +32,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('ticket_solutions');
+        Schema::dropIfExists('ticket_histories');
     }
 };
