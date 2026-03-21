@@ -14,11 +14,12 @@ return new class extends Migration
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
-            $table->string('full_name');
+            $table->string('name');
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('phone_number',15);
             $table->integer('ext')->nullable();
+            $table->date('birthdate');
             $table->string('password');
             $table->boolean('is_active')->default(true);
             $table->foreignIdFor(Department::class)->constrained();
