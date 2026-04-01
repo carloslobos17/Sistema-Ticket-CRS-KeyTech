@@ -2,19 +2,17 @@ import { useState } from 'react';
 import UserRoleBadge from '@/components/users/UserRoleBadge';
 import CreateUserModal from '@/components/users/CreateUserModal';
 import DeleteUserModal from '@/components/users/DeleteUserModal';
+import EditUserModal from '@/components/users/EditUserModal';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { type User } from '@/types/user';
-
-interface Department {
-    id: number;
-    name: string;
-}
+import { Department } from '@/types/department';
+import { RoleName } from '@/types/role';
 
 interface Props {
     users: User[];
     departments: Department[];
-    roles: string[];
+    roles: RoleName[];
 }
 
 const breadcrumbs: BreadcrumbItem[] = [{ title: 'Usuarios', href: '/users' }];
@@ -22,6 +20,7 @@ const breadcrumbs: BreadcrumbItem[] = [{ title: 'Usuarios', href: '/users' }];
 export default function Index({ users, departments, roles }: Props) {
     const [isCreateOpen, setIsCreateOpen] = useState(false);
     const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+    const [isEditOpen, setIsEditOpen] = useState(false);
     const [selectedUser, setSelectedUser] = useState<User | null>(null);
 
     const openDeleteModal = (user: User) => {
@@ -34,6 +33,16 @@ export default function Index({ users, departments, roles }: Props) {
         setIsDeleteOpen(false);
     };
 
+    const openEditModal = (user: User) => {
+        setSelectedUser(user);
+        setIsEditOpen(true);
+    };
+
+    const closeEditModal = () => {
+        setSelectedUser(null);
+        setIsEditOpen(false);
+    };
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <div className="mx-auto max-w-7xl p-6">
@@ -44,7 +53,6 @@ export default function Index({ users, departments, roles }: Props) {
                             Gestiona los miembros de tu equipo, sus roles y departamentos.
                         </p>
                     </div>
-
                     <button
                         onClick={() => setIsCreateOpen(true)}
                         className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-blue-700"
@@ -52,7 +60,6 @@ export default function Index({ users, departments, roles }: Props) {
                         Nuevo Usuario
                     </button>
                 </div>
-
                 <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
                     <div className="overflow-x-auto">
                         <table className="w-full border-collapse text-left">
@@ -73,18 +80,15 @@ export default function Index({ users, departments, roles }: Props) {
                                             <div className="font-medium text-gray-900">{user.name}</div>
                                             <div className="mt-0.5 text-xs text-gray-500">ID: {user.id}</div>
                                         </td>
-
                                         <td className="whitespace-nowrap px-6 py-4">
                                             <div className="text-gray-900">{user.email}</div>
                                             <div className="mt-0.5 text-xs text-gray-500">
                                                 Tel: {user.phone_number}
                                             </div>
                                         </td>
-
                                         <td className="whitespace-nowrap px-6 py-4 text-gray-700">
                                             {user.department?.name ?? 'Sin asignar'}
                                         </td>
-
                                         <td className="whitespace-nowrap px-6 py-4">
                                             <div className="flex gap-1">
                                                 {user.roles?.map((role) => (
@@ -92,7 +96,6 @@ export default function Index({ users, departments, roles }: Props) {
                                                 ))}
                                             </div>
                                         </td>
-
                                         <td className="whitespace-nowrap px-6 py-4">
                                             <span
                                                 className={`inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-medium ${
@@ -111,12 +114,13 @@ export default function Index({ users, departments, roles }: Props) {
                                                 {user.is_active === 1 ? 'Activo' : 'Inactivo'}
                                             </span>
                                         </td>
-
                                         <td className="space-x-4 whitespace-nowrap px-6 py-4 text-right font-medium">
-                                            <button className="text-blue-600 transition-colors hover:text-blue-900">
+                                            <button
+                                                onClick={() => openEditModal(user)}
+                                                className="text-blue-600 transition-colors hover:text-blue-900"
+                                            >
                                                 Editar
                                             </button>
-
                                             <button
                                                 onClick={() => openDeleteModal(user)}
                                                 className="text-red-600 transition-colors hover:text-red-900"
@@ -131,18 +135,23 @@ export default function Index({ users, departments, roles }: Props) {
                     </div>
                 </div>
             </div>
-
             <CreateUserModal
                 isOpen={isCreateOpen}
                 onClose={() => setIsCreateOpen(false)}
                 departments={departments}
                 roles={roles}
             />
-
             <DeleteUserModal
                 user={selectedUser}
                 isOpen={isDeleteOpen}
                 onClose={closeDeleteModal}
+            />
+            <EditUserModal
+                user={selectedUser}
+                isOpen={isEditOpen}
+                onClose={closeEditModal}
+                departments={departments}
+                roles={roles}
             />
         </AppLayout>
     );
