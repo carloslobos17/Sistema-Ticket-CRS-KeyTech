@@ -7,11 +7,16 @@ use App\Models\Area;
 use App\Models\Department;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
+use Spatie\Permission\Models\Role;
 
 class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
+        Role::firstOrCreate(['name' => 'admin']);
+        Role::firstOrCreate(['name' => 'agent']);
+        Role::firstOrCreate(['name' => 'user']);
+
         $area = Area::factory()->create([
             'name' => 'Administrativa',
             'description' => 'Área encargada de la gestión administrativa',
@@ -25,7 +30,7 @@ class DatabaseSeeder extends Seeder
         ]);
 
 
-        User::factory()->create([
+        $user = User::factory()->create([
             'name' => 'Admin Admin',
             'email' => 'admin@admin.com',
             'phone_number' => '00000000',
@@ -36,6 +41,8 @@ class DatabaseSeeder extends Seeder
             'department_id' => $department->id,
             'email_verified_at' => now(),
         ]);
+
+        $user->assignRole('admin');
 
 
     }
