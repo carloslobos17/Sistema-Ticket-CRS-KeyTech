@@ -4,18 +4,17 @@ import CreateUserModal from '@/components/users/CreateUserModal';
 import DeleteUserModal from '@/components/users/DeleteUserModal';
 import EditUserModal from '@/components/users/EditUserModal';
 import AppLayout from '@/layouts/app-layout';
-import { type BreadcrumbItem } from '@/types';
-import type { UserIndexProps, User } from '@/types/user';
 
-const breadcrumbs: BreadcrumbItem[] = [{ title: 'Usuarios', href: '/users' }];
 
-export default function Index({ users, departments, roles }: UserIndexProps) {
+const breadcrumbs = [{ title: 'Usuarios', href: '/users' }];
+
+export default function Index({ users, departments, roles }) {
     const [isCreateOpen, setIsCreateOpen] = useState(false);
     const [isDeleteOpen, setIsDeleteOpen] = useState(false);
     const [isEditOpen, setIsEditOpen] = useState(false);
-    const [selectedUser, setSelectedUser] = useState<User | null>(null);
+    const [selectedUser, setSelectedUser] = useState(null);
 
-    const openDeleteModal = (user: User) => {
+    const openDeleteModal = (user) => {
         setSelectedUser(user);
         setIsDeleteOpen(true);
     };
@@ -25,7 +24,7 @@ export default function Index({ users, departments, roles }: UserIndexProps) {
         setIsDeleteOpen(false);
     };
 
-    const openEditModal = (user: User) => {
+    const openEditModal = (user) => {
         setSelectedUser(user);
         setIsEditOpen(true);
     };
