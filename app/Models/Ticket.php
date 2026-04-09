@@ -21,8 +21,8 @@ class Ticket extends Model
         'attach',
         'expiration_date',
         'closing_date',
-        'requesting_user',
-        'assigned_user',
+        'requesting_user', //id
+        'assigned_user', //id
         'help_topic_id',
         'priority_id',
         'sla_plan_id',
