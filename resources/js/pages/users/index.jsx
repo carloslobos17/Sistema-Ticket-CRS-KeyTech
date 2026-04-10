@@ -1,17 +1,22 @@
+// resources/js/Pages/users/index.jsx
 /* global route */
+import DeleteEntityModal from '@/components/DeleteEntityModal';
 import { GenericTable } from '@/components/GenericTable';
 import { Button } from '@/components/ui/button';
 import UserRoleBadge from '@/components/users/UserRoleBadge';
-import DeleteEntityModal from '@/components/DeleteEntityModal'; // ✅ Importamos el genérico
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link } from '@inertiajs/react';
 import { Pencil, Plus, Trash2, User } from 'lucide-react';
 import { useState } from 'react';
 import { Toaster } from 'sonner';
+import { usePermissions } from '@/hooks/usePermissions';
 
 export default function Users({ users = [], departments = [], roles = [] }) {
     const [selectedUser, setSelectedUser] = useState(null);
     const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+
+    // 🚀 Inicializamos el hook
+    const { hasPermission, authUser } = usePermissions();
 
     const columns = [
         {
@@ -73,22 +78,28 @@ export default function Users({ users = [], departments = [], roles = [] }) {
             className: 'text-right',
             render: (user) => (
                 <div className="flex justify-end gap-2">
-                    <Button variant="ghost" size="icon" asChild className="h-8 w-8 hover:text-blue-600">
-                        <Link href={route('users.edit', user.id)}>
-                            <Pencil className="h-4 w-4" />
-                        </Link>
-                    </Button>
-                    <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 hover:text-red-600"
-                        onClick={() => {
-                            setSelectedUser(user);
-                            setIsDeleteOpen(true);
-                        }}
-                    >
-                        <Trash2 className="h-4 w-4" />
-                    </Button>
+                    {hasPermission('manage_users') && (
+                        <>
+                            <Button variant="ghost" size="icon" asChild className="h-8 w-8 hover:text-blue-600">
+                                <Link href={route('users.edit', user.id)}>
+                                    <Pencil className="h-4 w-4" />
+                                </Link>
+                            </Button>
+                            {user.id !== 1 && user.id !== authUser?.id && (
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-8 w-8 hover:text-red-600"
+                                    onClick={() => {
+                                        setSelectedUser(user);
+                                        setIsDeleteOpen(true);
+                                    }}
+                                >
+                                    <Trash2 className="h-4 w-4" />
+                                </Button>
+                            )}
+                        </>
+                    )}
                 </div>
             ),
         },
@@ -105,12 +116,16 @@ export default function Users({ users = [], departments = [], roles = [] }) {
                         <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-50">Usuarios</h1>
                         <p className="text-sm text-zinc-500">Gestión de miembros del equipo, roles y departamentos.</p>
                     </div>
-                    <Button asChild className="bg-zinc-900 dark:bg-zinc-50 dark:text-zinc-900">
-                        <Link href={route('users.create')}>
-                            <Plus className="mr-2 h-4 w-4" />
-                            Nuevo
-                        </Link>
-                    </Button>
+
+                    {/* 🛡️ PROTECCIÓN 3: Botón Nuevo solo para usuarios autorizados */}
+                    {hasPermission('manage_users') && (
+                        <Button asChild className="bg-zinc-900 dark:bg-zinc-50 dark:text-zinc-900">
+                            <Link href={route('users.create')}>
+                                <Plus className="mr-2 h-4 w-4" />
+                                Nuevo
+                            </Link>
+                        </Button>
+                    )}
                 </div>
 
                 <GenericTable data={users} columns={columns} />

@@ -10,11 +10,28 @@ use Spatie\Permission\Models\Role;
 class UserService
 {
     /**
-     * Obtener todos los usuarios con sus relaciones.
+     * Obtener todos los usuarios con sus relaciones y filtrados por nivel de acceso.
      */
     public function getAllUsers()
     {
-        return User::with('department', 'roles')->latest()->get();
+        $authUser = auth()->user();
+
+        // 1. El SuperAdmin ve absolutamente todo
+        if ($authUser->hasRole('superadmin')) {
+            return User::with('department', 'roles')->latest()->get();
+        }
+
+        // 2. El Admin de área solo ve a los Agentes de su departamento
+        if ($authUser->hasRole('admin')) {
+            return User::role('agent') // Filtramos por rol técnico
+            ->where('department_id', $authUser->department_id) // Solo de su departamento
+            ->with('department', 'roles')
+                ->latest()
+                ->get();
+        }
+
+        // 3. Otros roles no ven nada o ven lista vacía
+        return collect();
     }
 
     /**
@@ -62,10 +79,15 @@ class UserService
     }
 
     /**
-     * Eliminar un usuario.
+     * Eliminar un usuario con protecciones de seguridad.
      */
     public function deleteUser(User $user): void
     {
+        // 🛑 Bloqueo de seguridad: No permitir borrar al SuperAdmin raíz o al usuario actual
+        if ($user->id === 1 || $user->id === auth()->id()) {
+            throw new \Exception("No se puede eliminar este usuario por razones de seguridad.");
+        }
+
         $user->delete();
     }
 

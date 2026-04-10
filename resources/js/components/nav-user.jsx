@@ -6,10 +6,19 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { usePage } from '@inertiajs/react';
 import { ChevronsUpDown } from 'lucide-react';
 
+export const ROLE_TRANSLATIONS = {
+    superadmin: 'Super Administrador',
+    admin: 'Administrador de Área',
+    agent: 'Técnico',
+    user: 'Solicitante',
+};
+
 export function NavUser() {
     const { auth } = usePage().props;
     const { state } = useSidebar();
     const isMobile = useIsMobile();
+    const userRoleKey = auth.roles?.[0];
+    const displayRole = userRoleKey ? ROLE_TRANSLATIONS[userRoleKey] : 'Sin rol asignado';
 
     return (
         <SidebarMenu>
@@ -17,7 +26,7 @@ export function NavUser() {
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                         <SidebarMenuButton size="lg" className="text-sidebar-accent-foreground data-[state=open]:bg-sidebar-accent group">
-                            <UserInfo user={auth.user} />
+                            <UserInfo user={auth.user} roleLabel={displayRole} />
                             <ChevronsUpDown className="ml-auto size-4" />
                         </SidebarMenuButton>
                     </DropdownMenuTrigger>
@@ -26,7 +35,7 @@ export function NavUser() {
                         align="end"
                         side={isMobile ? 'bottom' : state === 'collapsed' ? 'left' : 'bottom'}
                     >
-                        <UserMenuContent user={auth.user} />
+                        <UserMenuContent user={auth.user} roleLabel={displayRole} />
                     </DropdownMenuContent>
                 </DropdownMenu>
             </SidebarMenuItem>
