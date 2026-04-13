@@ -1,0 +1,67 @@
+### ==========================================
+### CRUD DE USUARIOS - CRS
+### ==========================================
+
+### 1. Iniciar Sesión (Obtener Cookie de Sesión)
+# Este paso es obligatorio para que las demás peticiones no den error 401.
+POST https://sistema-ticket-crs.test/login
+Accept: application/json
+Content-Type: application/json
+
+{
+    "email": "admin@admin.com",
+    "password": "123"
+}
+
+###
+
+### 2. Crear Nuevo Usuario (POST)
+# Verifica que el 'department_id' exista en tu tabla de departamentos de SQL Server.
+POST https://sistema-ticket-crs.test/users
+Accept: application/json
+Content-Type: application/json
+
+{
+    "name": "Juan Alberto Pérez",
+    "email": "juan.perez@crs.org.sv",
+    "password": "password123",
+    "phone_number": "77889900",
+    "ext": "205",
+    "birthdate": "1995-05-15",
+    "department_id": 1,
+    "role": "user"
+}
+
+###
+
+### 3. Actualizar Usuario Existente (PATCH)
+# Cambia el ID (4) por el que desees editar.
+# En PATCH, la contraseña es opcional según tu controlador.
+PATCH https://sistema-ticket-crs.test/users/2
+Accept: application/json
+Content-Type: application/json
+
+{
+    "name": "Jacinto Juarez Editado",
+    "email": "juarezedit@gmail.com",
+    "phone_number": "25252727",
+    "ext": "101",
+    "birthdate": "1998-05-20",
+    "department_id": 1,
+    "role": "agent"
+}
+
+###
+
+### 4. Eliminar Usuario - Soft Delete (DELETE)
+# Esto no borra el registro de SQL Server, solo llena la columna 'deleted_at'.
+DELETE https://sistema-ticket-crs.test/users/2
+Accept: application/json
+Content-Type: application/json
+
+###
+
+### 5. Ver Lista de Usuarios (Opcional)
+# Útil para verificar si el usuario sigue apareciendo o no tras el Delete.
+GET https://sistema-ticket-crs.test/users
+Accept: application/json

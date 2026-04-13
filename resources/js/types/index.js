@@ -34,4 +34,32 @@
  * @property {Auth} auth
  */
 
+/**
+ * @typedef {Object} BreadcrumbItem
+ * @property {string} title
+ * @property {string} href
+ */
+
+/**
+ * @typedef {Object} NavGroup
+ * @property {string} title
+ * @property {NavItem[]} items
+ */
+
+/** 
+
+/**
+ * @typedef {Object} SharedData
+ * @property {string} name
+ * @property {Object} quote
+ * @property {string} quote.message
+ * @property {string} quote.author
+ * @property {Auth} auth
+ */
+
+// Re-exportamos todo lo que venga de los otros archivos JS
+export * from './user';
+export * from './department';
+export * from './role';
+
 

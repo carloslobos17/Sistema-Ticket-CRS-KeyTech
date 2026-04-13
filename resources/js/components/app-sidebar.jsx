@@ -3,8 +3,10 @@ import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { Link } from '@inertiajs/react';
-import { BookOpen, Folder, LayoutGrid, ListChecks } from 'lucide-react';
+import { BookOpen, Clock, Folder, LayoutGrid, ListChecks, Users } from 'lucide-react';
+
 import AppLogo from './app-logo';
+
 
 const mainNavItems = [
     {
@@ -12,11 +14,31 @@ const mainNavItems = [
         url: '/dashboard',
         icon: LayoutGrid,
     },
-     {
-        title: 'Prioridades',
-        url: '/priorities',
-        icon: ListChecks
+
+    {
+        title: 'Ticket',
+        icon: ListChecks,
+        children: [
+            {
+            title: 'Prioridades',
+            url: '/priorities',
+            icon: ListChecks
+            },
+            {
+                title: 'Planes SLA',
+                url: '/sla-plans',
+                icon: Clock,
+            },
+        ]
     },
+
+    {
+        title: 'Usuarios',
+        url: '/users',
+        icon: Users,
+    },
+
+
 ];
 
 const footerNavItems = [

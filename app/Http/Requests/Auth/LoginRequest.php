@@ -41,6 +41,18 @@ class LoginRequest extends FormRequest
     {
         $this->ensureIsNotRateLimited();
 
+        //  Buscar usuario por email
+        $user = \App\Models\User::where('email', $this->email)->first();
+
+        // Validar si existe, si está activo o eliminado
+        if (!$user || !$user->is_active || $user->deleted_at !== null) {
+            RateLimiter::hit($this->throttleKey());
+
+            throw ValidationException::withMessages([
+                'email' => 'Credenciales inválidas o usuario inactivo',
+            ]);
+        }
+
         if (! Auth::attempt($this->only('email', 'password'), $this->boolean('remember'))) {
             RateLimiter::hit($this->throttleKey());
 

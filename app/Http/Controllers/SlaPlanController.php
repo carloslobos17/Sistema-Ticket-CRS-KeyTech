@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\SlaPlan;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 
 class SlaPlanController extends Controller
 {
@@ -12,7 +13,10 @@ class SlaPlanController extends Controller
      */
     public function index()
     {
-        //
+        $planes = SlaPlan::all();
+        return Inertia::render('sla-plans/index', [
+            'planes' => $planes,
+        ]);
     }
 
     /**
@@ -20,7 +24,7 @@ class SlaPlanController extends Controller
      */
     public function create()
     {
-        //
+        return Inertia::render('sla-plans/create');return view('sla_plans.create');
     }
 
     /**
@@ -28,7 +32,19 @@ class SlaPlanController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $request->validate([
+            'name'             => 'required|string|max:50',
+            'grace_time_hours' => 'required|integer|min:1',
+            'working_hours'    => 'required|boolean',
+        ]);
+
+        try {
+            SlaPlan::create($request->all());
+            return redirect()->route('sla-plans.index')
+                             ->with('success', 'Plan SLA creado exitosamente.');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Error al guardar. Intente nuevamente.');
+        }
     }
 
     /**
