@@ -55,21 +55,25 @@ export default function Prioridades() {
             header: "Acciones",
             render: (priority) => (
                 <div className="flex gap-2">
-                    <Button variant="ghost" size="icon" asChild className="h-8 w-8 hover:text-blue-600">
-                        <Link href={`/priorities/${priority.id}/edit`}>
-                            <Pencil className="h-4 w-4" />
-                        </Link>
-                    </Button>
-                    <Button
-                        variant="ghost" size="icon"
-                        className="h-8 w-8 hover:text-red-600"
-                        onClick={() => {
-                            setSelectedPriority(priority);
-                            setIsDeleteModalOpen(true);
-                        }}
-                    >
-                        <Trash2 className="h-4 w-4" />
-                    </Button>
+                    {hasPermission("editar prioridad") && (
+                        <Button variant="ghost" size="icon" asChild className="h-8 w-8 hover:text-blue-600">
+                            <Link href={`/priorities/${priority.id}/edit`}>
+                                <Pencil className="h-4 w-4" />
+                            </Link>
+                        </Button>
+                    )}
+                    {hasPermission("eliminar prioridad") && (
+                        <Button
+                            variant="ghost" size="icon"
+                            className="h-8 w-8 hover:text-red-600"
+                            onClick={() => {
+                                setSelectedPriority(priority);
+                                setIsDeleteModalOpen(true);
+                            }}
+                        >
+                            <Trash2 className="h-4 w-4" />
+                        </Button>
+                    )}
                 </div>
             )
         }
@@ -81,21 +85,37 @@ export default function Prioridades() {
             <Toaster position="top-right" richColors />
 
             <div className="p-4 md:p-8 space-y-6">
-                <div className="flex justify-between items-center">
+                {/* Cabecera con búsqueda y botón nuevo */}
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                     <div>
-                        <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-50">Prioridades</h1>
-                        <p className="text-zinc-500 text-sm">Gestión de niveles de importancia para los tickets.</p>
+                        <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-50">
+                            Prioridad
+                        </h1>
+                        <p className="text-zinc-500 text-sm">
+                            Definición de prioridad para tickets.
+                        </p>
                     </div>
-                    {"crear prioridad" && (
-                        <Button asChild className="bg-zinc-900 dark:bg-zinc-50 dark:text-zinc-900">
-                            <Link href="/priorities/create">
-                                <Plus className="mr-2 h-4 w-4" />Nueva
-                            </Link>
-                        </Button>
-                    )}
+                    <div className="flex gap-2 w-full sm:w-auto">
+                        <div className="relative flex-1 sm:flex-initial">
+                            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-zinc-500" />
+                            <Input
+                                type="text"
+                                placeholder="Buscar prioridad..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="pl-8 w-full sm:w-[250px]"
+                            />
+                        </div>
+                        {hasPermission("crear prioridad") && (
+                            <Button asChild className="bg-zinc-900 dark:bg-zinc-50 dark:text-zinc-900">
+                                <Link href="/priorities/create">
+                                    <Plus className="mr-2 h-4 w-4" /> Nuevo
+                                </Link>
+                            </Button>
+                        )}
+                    </div>
                 </div>
-
-                <GenericTable data={filteredPriorities} columns={columns} />
+                 <GenericTable data={filteredPriorities} columns={columns} />
             </div>
 
             <DeleteEntityModal
