@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use App\Http\Requests\StorePriorityRequest;
 use Illuminate\Http\RedirectResponse;
+use App\Http\Requests\UpdatePriorityRequest;
 
 class PriorityController extends Controller
 {
@@ -57,22 +58,32 @@ class PriorityController extends Controller
      */
     public function edit(string $id)
     {
-        //
+        $priority = Priority::findOrFail($id);
+
+        return Inertia::render('priorities/edit', [
+            'priority' => $priority
+        ]);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(UpdatePriorityRequest $request, string $id): RedirectResponse
     {
-        //
+        $priority = Priority::findOrFail($id);
+        $priority->update($request->validated());
+
+        return redirect()->route('priorities.index')->with('success', 'Priority updated successfully.');
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(string $id): RedirectResponse
     {
-        //
+        $priority = Priority::findOrFail($id);
+        $priority->delete();
+
+        return redirect()->route('priorities.index')->with('success', 'Priority deleted successfully.');
     }
 }

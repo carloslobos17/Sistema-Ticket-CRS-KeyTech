@@ -7,21 +7,21 @@ import { Label } from "@/components/ui/label";
 import { Toaster, toast } from "sonner";
 import { ArrowLeft, Loader2 } from "lucide-react";
 
-export default function Create() {
-    const { data, setData, post, processing, errors } = useForm({
-        name: "",
-        color: "#3b82f6",
-        level: false,
+export default function Edit({ priority }) {
+    const { data, setData, put, processing, errors } = useForm({
+        name: priority.name || "",
+        color: priority.color || "#3b82f6",
+        level: priority.level || "",
     });
 
     const submit = (e) => {
         e.preventDefault();
 
-        post("/priorities", {
+        put(`/priorities/${priority.id}`, {
             onSuccess: () => {
                 setTimeout(() => {
-                    toast.success("¡Prioridad creada!", {
-                        description: "La nueva prioridad se ha añadido al listado correctamente.",
+                    toast.success("¡Prioridad actualizada!", {
+                        description: "La prioridad se ha actualizado correctamente.",
                     });
                 }, 100);
             },
@@ -36,7 +36,7 @@ export default function Create() {
     return (
         <AppLayout>
             <Toaster richColors position="top-right" />
-            <Head title="Nueva Prioridad" />
+            <Head title="Editar Prioridad" />
             <form
                 onSubmit={submit}
                 className="flex-1 flex flex-col w-full p-4 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 overflow-hidden"
@@ -46,7 +46,7 @@ export default function Create() {
                     <Button asChild variant="ghost" size="icon" className="rounded-full h-8 w-8">
                         <Link href="/priorities"><ArrowLeft className="h-4 w-4" /></Link>
                     </Button>
-                    <h2 className="text-lg font-bold text-zinc-900 dark:text-zinc-50">Nueva Prioridad</h2>
+                    <h2 className="text-lg font-bold text-zinc-900 dark:text-zinc-50">Editar Prioridad</h2>
                 </div>
 
                 <div className="flex-1 p-8 ml-4 ">
@@ -90,7 +90,7 @@ export default function Create() {
                         </div>
                         {/* Campo: Nivel  */}
                         <div className="space-y-3">
-                            <Label htmlFor="name" className="text-s font-bold  text-zinc-500">
+                            <Label htmlFor="level" className="text-s font-bold  text-zinc-500">
                                 Nivel
                             </Label>
                             <Input
@@ -117,7 +117,7 @@ export default function Create() {
                             disabled={processing}
                             className="h-11 px-8 bg-zinc-900 text-white rounded-xl font-bold transition-all active:scale-95 shadow-lg shadow-zinc-900/10"
                         >
-                            {processing ? <Loader2 className="h-4 w-4 animate-spin" /> : "Crear Prioridad"}
+                            {processing ? <Loader2 className="h-4 w-4 animate-spin" /> : "Actualizar Prioridad"}
                         </Button>
                     </div>
                 </div>

@@ -4,8 +4,9 @@ namespace App\Http\Requests;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
-class StorePriorityRequest extends FormRequest
+class UpdatePriorityRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -22,10 +23,14 @@ class StorePriorityRequest extends FormRequest
     {
         return [
             'name'  => 'required|string|max:50',
-            'color' => ['required', 'string', 'regex:/^#([a-fA-F0-9]{3}){1,2}$/'], 
-            'level' => 'required|integer|unique:priorities'
+            'color' => ['required', 'string', 'regex:/^#([a-fA-F0-9]{3}){1,2}$/'],
+            'level' => [
+                'required',
+                'integer',
+                Rule::unique('priorities', 'level')->ignore($this->route('priority'))
+            ]
         ];
-        
+
     }
 
     /**
@@ -37,10 +42,10 @@ class StorePriorityRequest extends FormRequest
             'name.required'  => 'El nombre de la prioridad es obligatorio.',
             'name.string'    => 'El nombre debe ser una cadena de texto.',
             'name.max'       => 'El nombre no puede tener más de 50 caracteres.',
-            
+
             'color.required' => 'Debes seleccionar un color.',
             'color.regex'    => 'El formato del color debe ser un hexadecimal válido (ej: #FF0000 o #F00).',
-            
+
             'level.required' => 'El nivel de prioridad es obligatorio.',
             'level.integer'  => 'El nivel debe ser un número entero.',
             'level.unique'   => 'Este nivel de prioridad ya existe, por favor elige otro.',
