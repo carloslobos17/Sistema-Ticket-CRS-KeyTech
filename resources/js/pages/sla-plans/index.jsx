@@ -8,6 +8,7 @@ import { Plus, Search, Pencil, Trash2, Clock } from "lucide-react";
 import DeleteEntityModal from "@/components/DeleteEntityModal";
 import { GenericTable } from "@/components/GenericTable";
 
+
 const breadcrumbs = [
     { title: "Dashboard", href: "/dashboard" },
     { title: "Planes SLA", href: "/sla-plans" },

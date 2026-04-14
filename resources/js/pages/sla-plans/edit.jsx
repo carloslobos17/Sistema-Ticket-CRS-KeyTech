@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ArrowLeft, Loader2 } from "lucide-react";
+import toast, { Toaster } from 'react-hot-toast';
 
 export default function Edit({ slaPlan }) {
     // Inicializamos el formulario con los datos existentes
@@ -16,7 +17,6 @@ export default function Edit({ slaPlan }) {
 
     const submit = (e) => {
         e.preventDefault();
-        // Ruta de actualización con el ID del plan
         put(`/sla-plans/${slaPlan.id}`);
     };
 
