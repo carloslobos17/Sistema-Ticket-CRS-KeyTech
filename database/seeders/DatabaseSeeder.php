@@ -19,6 +19,7 @@ class DatabaseSeeder extends Seeder
             RoleSeeder::class,
             UserSeeder::class,
             UserRoleSeeder::class,
+            TecnicoDataSeeder::class,
             KnowledgeSeeder::class,
         ]);
 
