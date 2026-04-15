@@ -50,7 +50,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/sla-plans',       [SlaPlanController::class, 'store'])->name('sla-plans.store');
     Route::resource('priorities', PriorityController::class);
 
-    Route::middleware(['role:admin'])->group(function () {
+    Route::middleware(['permission:manage_users|view_area_dashboard'])->group(function () {
         Route::resource('users', UserController::class);
     });
 

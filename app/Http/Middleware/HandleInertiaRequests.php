@@ -38,10 +38,11 @@ class HandleInertiaRequests extends Middleware
     {
         [$message, $author] = str(Inspiring::quotes()->random())->explode('-');
 
-        return array_merge(parent::share($request), [
+        return [
             ...parent::share($request),
             'name' => config('app.name'),
             'quote' => ['message' => trim($message), 'author' => trim($author)],
+
             'auth' => [
                 'user' => $request->user()
                     ? array_merge(
@@ -52,6 +53,12 @@ class HandleInertiaRequests extends Middleware
                     )
                     :null,
             ],
-        ]);
+
+            // Mensajes globales de sesión (para el Toaster / Alertas)
+            'flash' => [
+                'success' => $request->session()->get('success'),
+                'error' => $request->session()->get('error'),
+            ],
+        ];
     }
 }
