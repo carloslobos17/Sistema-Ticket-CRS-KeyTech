@@ -8,6 +8,7 @@ use App\Http\Controllers\SlaPlanController;
 use App\Http\Controllers\PriorityController;
 use App\Http\Controllers\TecnicoController;
 use App\Http\Controllers\TicketController;
+use App\Http\Controllers\RequestTicketController;
 
 Route::get('/', [PublicController::class, 'index'])->name('home');
 
@@ -17,7 +18,7 @@ Route::middleware(['auth'])->group(function () {
         return Inertia::render('dashboard');
     })->name('dashboard');
 
-     Route::middleware(['role:tecnico|admin'])->group(function () {
+    Route::middleware(['role:tecnico|admin'])->group(function () {
         Route::prefix('tecnico')->group(function () {
             Route::get('/dashboard', function () {
                 return Inertia::render('tecnico/Dashboard');
@@ -46,17 +47,19 @@ Route::middleware(['auth'])->group(function () {
     });
 
 
+    Route::get('/tickets/preview', [RequestTicketController::class, 'preview'])->name('tickets.preview');
+
+    Route::resource('tickets', TicketController::class);
+
+    Route::get('/tickets/{id}', [TicketController::class, 'show']);
     // Rutas de SLA Plans
     Route::resource('/sla-plans',  SlaPlanController::class);
     // Rutas de prioridades
     Route::resource('priorities', PriorityController::class);
-    Route::resource('tickets', TicketController::class);
 
     Route::middleware(['permission:manage_users|view_area_dashboard'])->group(function () {
         Route::resource('users', UserController::class);
     });
-
-
 });
 
 require __DIR__ . '/settings.php';
