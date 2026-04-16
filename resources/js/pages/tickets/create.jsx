@@ -66,13 +66,25 @@ export default function Create() {
     };
 
     const submit = (e) => {
-        e.preventDefault();
-        post("/tickets", { forceFormData: true });
+        if (e && e.preventDefault) e.preventDefault();
+        console.log("Intentando enviar datos...", data); 
+
+        post(route('tickets.store'), { 
+            forceFormData: true,
+            onSuccess: () => {
+                console.log("¡Éxito!");
+                setShowPreview(false);
+            },
+            onError: (err) => {
+                console.error("Errores de validación:", err);
+                setShowPreview(false); 
+            }
+        });
     };
 
     if (showPreview) {
         return (
-            <Preview 
+            <Preview
                 data={data}
                 auth={auth}
                 departments={departments}
@@ -85,7 +97,7 @@ export default function Create() {
             />
         );
     }
-    
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Nuevo Ticket" />
