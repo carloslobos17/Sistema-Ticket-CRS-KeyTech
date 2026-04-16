@@ -9,52 +9,33 @@ use App\Models\Division;
 use App\Models\HelpTopic;
 use App\Models\Ticket;
 use App\Models\Status;
+use App\Models\Priority;
 use Illuminate\Support\Facades\DB;
 use Exception;
-use App\Models\Priority;
+
+use Illuminate\Support\Facades\Auth;
 
 class RequestTicketService 
 {
-    public function save(array $data)
-    {
-        return DB::transaction(function () use ($data)
-        {
-            $user = User::where([
-                'name' => $data['user']['name'],
-                'phone_number' => $data['user']['phone_number'],
-                'ext' => $data['user']['ext']
-            ])->first();
-            
-            if (!$user) {
-                throw new Exception('El usuario no existe');
-            }
+public function save(array $data)
+{
+    return DB::transaction(function () use ($data) {
 
-            $department = Department::where('name', $data['department']['name'])->first();
+        $ticket = Ticket::create([
+            'code' => 'TCK-' . strtoupper(uniqid()),
+            'email' => auth()->User::where()->email,
+            'subject' => $data['subject'],
+            'message' => $data['message'],
+            'attach' => $data['attach'] ?? null,
+            'requesting_user' => Auth::id(),
+            'department_id' => $data['department_id'],
+            'division_id' => $data['division_id'],
+            'help_topic_id' => $data['help_topic_id'],
+            'status_id' => Status::getDefaultId(),
+            'creation_date' => now(),
+        ]);
 
-            if (!$department) {
-                throw new Exception('El deparmento no existe');
-            }
+        return $ticket;
+    });
+}}
 
-            $helpTopic = HelpTopic::where('name_topic', $data['helpTopic']['name_topic'])->first();
-
-            if (!$helpTopic) {
-                throw new Exception('Ese tema de ayuda no existe');
-            }     
-
-            $ticket = Ticket::create([
-                'code' => 'TCK-' . strtoupper(uniqid()),
-                'email' => $data['ticket']['email'],
-                'subject' => $data['ticket']['subject'],
-                'message' => $data['ticket']['message'],
-                'attach' => $data['ticket']['attach'] ?? null,
-                'requesting_user' => $user->id,
-                'department_id' => $department->id,
-                'help_topic_id' => $helpTopic->id,
-                'status_id' => Status::getDefaultId(),
-                'creation_date' => now(),
-            ]);
-            return $ticket;
-        });
-        
-    }
-}

@@ -13,7 +13,6 @@ use App\Http\Controllers\RequestTicketController;
 Route::get('/', [PublicController::class, 'index'])->name('home');
 
 Route::middleware(['auth'])->group(function () {
-
     Route::get('dashboard', function () {
         return Inertia::render('dashboard');
     })->name('dashboard');
@@ -24,6 +23,7 @@ Route::middleware(['auth'])->group(function () {
                 return Inertia::render('tecnico/Dashboard');
             })->name('tecnico.dashboard');
 
+            
             Route::get('/ticket/{id}', function ($id) {
                 return Inertia::render('dashboards/detalleTicket', ['id' => $id]);
             })->name('tecnico.ticket');

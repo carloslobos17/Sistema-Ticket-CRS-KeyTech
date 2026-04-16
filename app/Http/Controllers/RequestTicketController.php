@@ -20,15 +20,20 @@ class RequestTicketController extends Controller
     {
         try {
             $request->validate([
-                'user.name' => 'required',
-                'user.phone_number' => 'required',
-                'user.ext' => 'required',
-                'department.name' => 'required',
-                'helpTopic.name_topic' => 'required',
-                'ticket.email' => 'required|email',
-                'ticket.subject' => 'required',
-                'ticket.message' => 'required',
-                'ticket.attach' => 'nullable'
+                // 'user.name' => 'required',
+                // 'user.phone_number' => 'required',
+                // 'user.ext' => 'required',
+                // 'department.name' => 'required',
+                // 'helpTopic.name_topic' => 'required',
+                // 'ticket.email' => 'required|email',
+                // 'ticket.subject' => 'required',
+                // 'ticket.message' => 'required',
+                // 'ticket.attach' => 'nullable'   
+                'department_id' => 'required|exists:departments,id',
+                'division_id' => 'required|exists:divisions,id',
+                'help_topic_id' => 'required|exists:help_topics,id',
+                'subject' => 'required',
+                'message' => 'required',                             
             ]);
 
             $ticket = $this->service->save($request->all());
