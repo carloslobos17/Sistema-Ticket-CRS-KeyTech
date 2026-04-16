@@ -9,10 +9,10 @@ use App\Models\Priority;
 use App\Models\SlaPlan;
 use App\Models\Status;
 use App\Models\Ticket;
-use Illuminate\Container\Attributes\Auth;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Inertia\Inertia;
+use Illuminate\Support\Facades\Auth;
 
 class TicketController extends Controller
 {
@@ -21,7 +21,7 @@ class TicketController extends Controller
      */
      public function index()
     {
-        $tickets = Ticket::where('requesting_user', auth()->id())->get();
+        $tickets = Ticket::where('requesting_user', Auth::id())->get();
         return Inertia::render('tickets/index', [
             'tickets' => $tickets,
         ]);
@@ -79,13 +79,13 @@ class TicketController extends Controller
     $ticket = Ticket::create([
         'code'            => $code,
         'creation_date'   => $creationDate,
-        'email'           => auth()->user()->email,
+        'email'           => Auth::User()->email,
         'subject'         => $validated['subject'],
         'message'         => $validated['message'],
         'attach'          => $attachPath,
         'expiration_date' => $expirationDate,
         'closing_date'    => null,
-        'requesting_user' => auth()->id(),
+        'requesting_user' => Auth::id(),
         'assigned_user'   => null,
         'help_topic_id'   => $helpTopic->id,
         'priority_id'     => $priority->id,
@@ -93,7 +93,7 @@ class TicketController extends Controller
         'department_id'   => $validated['department_id'],
         'status_id'       => $statusOpen->id,
     ]);
-
+    dd($request->all());
     return redirect()->route('tickets.index')->with('success', 'Ticket creado correctamente');
 }
 

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Head, Link, useForm, usePage } from "@inertiajs/react";
+import { Head, useForm, usePage } from "@inertiajs/react";
 import AppLayout from "@/layouts/app-layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,7 +12,6 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { ArrowLeft, Loader2, Paperclip, Ticket } from "lucide-react";
 import { route } from "ziggy-js";
 
 const breadcrumbs = [
@@ -26,7 +25,8 @@ export default function Create() {
 
     const [dept, setDept] = useState("");
     const [div, setDiv] = useState("");
-    const { data, setData, post, processing, errors, progress } = useForm({
+
+    const { data, setData, post, processing, errors } = useForm({
         department_id: "",
         division_id: "",
         help_topic_id: "",
@@ -36,129 +36,209 @@ export default function Create() {
     });
 
     const filteredDivisions = dept
-        ? divisions.filter((d) => d.department_id === parseInt(dept))
-        : divisions;
+        ? divisions.filter((d) => parseInt(d.department_id) === parseInt(dept))
+        : [];
+
     const filteredTopics = div
-        ? helpTopics.filter((t) => t.division_id === parseInt(div))
+        ? helpTopics.filter((t) => parseInt(t.division_id) === parseInt(div))
         : [];
 
     const handleDeptChange = (val) => {
         setDept(val);
         setDiv("");
-        setData({ ...data, department_id: val, division_id: "", help_topic_id: "" });
+        setData("department_id", val);
+        setData("division_id", "");
+        setData("help_topic_id", "");
     };
 
     const handleDivChange = (val) => {
         setDiv(val);
-        setData({ ...data, division_id: val, help_topic_id: "" });
+        setData("division_id", val);
+        setData("help_topic_id", "");
     };
 
     const submit = (e) => {
         e.preventDefault();
-        post(route("tickets.store"));
+        post("/tickets", { forceFormData: true });
     };
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Nuevo Ticket" />
-            <form onSubmit={submit} className="flex flex-col w-full p-4 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800">
-                {/* Header */}
-                <div className="p-6 border-b flex items-center gap-4">
-                    <Button asChild variant="ghost" size="icon" className="rounded-full h-8 w-8">
-                        <Link href="/tickets"><ArrowLeft className="h-4 w-4" /></Link>
-                    </Button>
-                    <h2 className="text-lg font-bold flex items-center gap-2">
-                        <Ticket className="h-5 w-5 text-red-600" /> Nuevo Ticket
-                    </h2>
-                </div>
+            <form onSubmit={submit} className="p-8 min-h-screen">
 
-                {/* Formulario en grid */}
-                <div className="flex-1 p-8">
-                    <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {/* Solicitante */}
-                        <div className="md:col-span-2 space-y-2">
-                            <Label>Solicitante</Label>
-                            <div className="p-3 rounded-xl border bg-muted/30">
-                                <p className="font-bold">{auth.user.name}</p>
-                                <p className="text-xs text-muted-foreground">{auth.user.email}</p>
+                <h1 className="text-2xl font-bold text-red-600 mb-2">
+                    Abrir Nuevo Ticket
+                </h1>
+                <p className="text-sm text-gray-600 mb-6">
+                    Rellene el siguiente formulario para abrir un nuevo ticket
+                </p>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                    {/* Información del Personal */}
+                    <div className="bg-white border border-[#706F6F] rounded-xl p-6">
+                        <h2 className="text-red-600 font-semibold mb-6">
+                            Información del Personal
+                        </h2>
+
+                        <div className="space-y-4">
+                            <div className="grid grid-cols-3 items-center gap-4">
+                                <Label className="text-[#3C3C3B]">Nombre y Apellidos:</Label>
+                                <Input
+                                    className="col-span-2 border-[#706F6F]"
+                                    value={auth.user.name}
+                                    disabled
+                                />
+                            </div>
+
+                            <div className="grid grid-cols-3 items-center gap-4">
+                                <Label className="text-[#3C3C3B]">Correo Electrónico:</Label>
+                                <Input
+                                    className="col-span-2 border-[#706F6F]"
+                                    value={auth.user.email}
+                                    disabled
+                                />
+                            </div>
+
+                            <div className="grid grid-cols-3 items-center gap-4">
+                                <Label className="text-[#3C3C3B]">Teléfono:</Label>
+                                <div className="col-span-2 flex gap-4">
+                                    <Input
+                                        className="border-[#706F6F] w-1/2"
+                                        value={auth.user.phone_number ?? ""}
+                                        disabled
+                                    />
+                                    <div className="flex items-center gap-2 w-1/2">
+                                        <Label className="text-[#3C3C3B]">Ext:</Label>
+                                        <Input
+                                            className="border-[#706F6F]"
+                                            value={auth.user.ext ?? ""}
+                                            disabled
+                                        />
+                                    </div>
+                                </div>
                             </div>
                         </div>
+                    </div>
 
-                        {/* Departamento */}
-                        <div className="space-y-2">
-                            <Label>Departamento *</Label>
-                            <Select value={dept} onValueChange={handleDeptChange}>
-                                <SelectTrigger><SelectValue placeholder="Seleccione..." /></SelectTrigger>
-                                <SelectContent>
-                                    {departments.map(d => (
-                                        <SelectItem key={d.id} value={d.id.toString()}>{d.name}</SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            {errors.department_id && <p className="text-xs text-red-500">{errors.department_id}</p>}
-                        </div>
+                    {/* Información de Área */}
+                    <div className="bg-white border border-[#706F6F] rounded-xl p-6">
+                        <h2 className="text-red-600 font-semibold mb-6">
+                            Información de Área
+                        </h2>
 
-                        {/* División */}
-                        <div className="space-y-2">
-                            <Label>División *</Label>
-                            <Select value={div} onValueChange={handleDivChange}>
-                                <SelectTrigger><SelectValue placeholder="Seleccione..." /></SelectTrigger>
-                                <SelectContent>
-                                    {filteredDivisions.map(d => (
-                                        <SelectItem key={d.id} value={d.id.toString()}>{d.name}</SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            {errors.division_id && <p className="text-xs text-red-500">{errors.division_id}</p>}
-                        </div>
+                        <div className="space-y-4">
+                            <div className="grid grid-cols-2 gap-6">
+                                <div className="flex items-center gap-3">
+                                    <Label className="text-[#3C3C3B] w-28">Departamento:</Label>
+                                    <Select value={dept} onValueChange={handleDeptChange}>
+                                        <SelectTrigger className="border-[#706F6F]">
+                                            <SelectValue placeholder="Seleccione..." />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {departments.map((d) => (
+                                                <SelectItem key={d.id} value={d.id.toString()}>
+                                                    {d.name}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
 
-                        {/* Tema de ayuda */}
-                        <div className="space-y-2">
-                            <Label>Tema de ayuda *</Label>
-                            <Select value={data.help_topic_id} onValueChange={val => setData("help_topic_id", val)}>
-                                <SelectTrigger><SelectValue placeholder="Seleccione..." /></SelectTrigger>
-                                <SelectContent>
-                                    {filteredTopics.map(t => (
-                                        <SelectItem key={t.id} value={t.id.toString()}>{t.name_topic}</SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            {errors.help_topic_id && <p className="text-xs text-red-500">{errors.help_topic_id}</p>}
-                        </div>
-
-                        {/* Asunto */}
-                        <div className="space-y-2">
-                            <Label>Asunto *</Label>
-                            <Input value={data.subject} onChange={e => setData("subject", e.target.value)} placeholder="Ej: Problema con el sistema..." />
-                            {errors.subject && <p className="text-xs text-red-500">{errors.subject}</p>}
-                        </div>
-
-                        {/* Mensaje */}
-                        <div className="md:col-span-2 space-y-2">
-                            <Label>Descripción *</Label>
-                            <Textarea rows={4} value={data.message} onChange={e => setData("message", e.target.value)} placeholder="Detalla el problema..." />
-                            {errors.message && <p className="text-xs text-red-500">{errors.message}</p>}
-                        </div>
-
-                        {/* Adjunto */}
-                        <div className="md:col-span-2 space-y-2">
-                            <Label className="flex items-center gap-2"><Paperclip className="h-4 w-4" /> Adjuntar archivo (opcional)</Label>
-                            <div className="rounded-xl border border-dashed p-4">
-                                <input type="file" onChange={e => setData("attach", e.target.files[0])} className="w-full text-sm file:mr-2 file:py-1 file:px-3 file:rounded-md file:border-0 file:bg-primary/10" />
-                                <p className="text-xs text-muted-foreground mt-1">Formatos: JPG, PNG, PDF. Máx 5MB.</p>
+                                <div className="flex items-center gap-3">
+                                    <Label className="text-[#3C3C3B] w-20">División:</Label>
+                                    <Select value={div} onValueChange={handleDivChange} disabled={!dept}>
+                                        <SelectTrigger className="border-[#706F6F]">
+                                            <SelectValue placeholder="Seleccione..." />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {filteredDivisions.map((d) => (
+                                                <SelectItem key={d.id} value={d.id.toString()}>
+                                                    {d.name}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
                             </div>
-                            {errors.attach && <p className="text-xs text-red-500">{errors.attach}</p>}
-                            {progress && <div className="h-1 bg-muted rounded-full mt-2"><div className="h-full bg-red-600 rounded-full" style={{ width: `${progress.percentage}%` }} /></div>}
+
+                            <div className="flex items-center gap-3">
+                                <Label className="text-[#3C3C3B] w-36">Temas de ayuda:</Label>
+                                <Select
+                                    value={data.help_topic_id}
+                                    onValueChange={(val) => setData("help_topic_id", val)}
+                                    disabled={!div}
+                                >
+                                    <SelectTrigger className="border-[#706F6F] w-full">
+                                        <SelectValue placeholder="Seleccione..." />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {filteredTopics.map((t) => (
+                                            <SelectItem key={t.id} value={t.id.toString()}>
+                                                {t.name_topic}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+
+                            {/* Errores de validación */}
+                            {errors.department_id && <p className="text-red-500 text-xs">{errors.department_id}</p>}
+                            {errors.division_id   && <p className="text-red-500 text-xs">{errors.division_id}</p>}
+                            {errors.help_topic_id && <p className="text-red-500 text-xs">{errors.help_topic_id}</p>}
                         </div>
                     </div>
                 </div>
 
-                {/* Footer */}
-                <div className="p-6 border-t flex justify-end gap-4">
-                    <Button variant="ghost" asChild><Link href="/tickets">Cancelar</Link></Button>
-                    <Button type="submit" disabled={processing} className="bg-red-600 hover:bg-red-700">
-                        {processing ? <Loader2 className="h-4 w-4 animate-spin" /> : "Crear Ticket"}
-                    </Button>
+                {/* Mensaje */}
+                <div className="bg-white border border-[#3C3C3B] rounded-xl p-6 mt-6">
+                    <h2 className="text-red-600 font-bold mb-4">
+                        Mensaje a notificar
+                    </h2>
+
+                    <div className="grid md:grid-cols-2 gap-6">
+                        <div className="space-y-4">
+                            <div>
+                                <Label>Asunto</Label>
+                                <Input
+                                    value={data.subject}
+                                    onChange={(e) => setData("subject", e.target.value)}
+                                />
+                                {errors.subject && <p className="text-red-500 text-xs">{errors.subject}</p>}
+                            </div>
+
+                            <div>
+                                <Label>Mensaje</Label>
+                                <Textarea
+                                    rows={5}
+                                    value={data.message}
+                                    onChange={(e) => setData("message", e.target.value)}
+                                />
+                                {errors.message && <p className="text-red-500 text-xs">{errors.message}</p>}
+                            </div>
+                        </div>
+
+                        <div>
+                            <Label>Adjuntos</Label>
+                            <div className="border-2 border-dashed rounded-xl p-6 text-center">
+                                <input
+                                    type="file"
+                                    onChange={(e) => setData("attach", e.target.files[0])}
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="flex justify-center mt-6">
+                        <Button
+                            type="submit"
+                            disabled={processing}
+                            className="bg-red-600 hover:bg-red-700 px-10"
+                        >
+                            {processing ? "Enviando..." : "Enviar"}
+                        </Button>
+                    </div>
                 </div>
             </form>
         </AppLayout>
