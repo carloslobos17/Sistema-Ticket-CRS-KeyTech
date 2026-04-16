@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Plus, Search, Eye, CheckCircle, Star, X } from "lucide-react";
 import { GenericTable } from "@/components/GenericTable";
 import { route } from 'ziggy-js';
+import TicketRatingModal from '@/components/raiting/calificationModal'
 
 
 const breadcrumbs = [
@@ -247,6 +248,8 @@ export default function Index() {
                     </div>
                 </div>
             )}
+
         </AppLayout>
+        
     );
 }
