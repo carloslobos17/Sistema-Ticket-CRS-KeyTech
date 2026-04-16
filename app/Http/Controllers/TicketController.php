@@ -42,7 +42,13 @@ class TicketController extends Controller
         'helpTopics' => $helpTopics,
     ]);
     }
-
+    
+    public function preview(Request $request)
+    {
+        return Inertia::render('tickets/preview', [
+            'ticket' => $request->all()
+        ]);
+    }
     /**
      * Guarda el ticket en la base de datos.
      */

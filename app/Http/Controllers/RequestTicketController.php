@@ -51,38 +51,4 @@ class RequestTicketController extends Controller
     }
 
 
-    public function preview(Request $request)
-    {
-        return Inertia::render('tickets/preview', [
-            'ticket' => $request->all()
-        ]);
-    }
-
-
-    public function show($id)
-    {
-        $ticket = Ticket::findOrFail($id);
-
-        return Inertia::render('Tickets/Preview', [
-            'ticket' => [
-                'code' => $ticket->id,
-                'status' => $ticket->status,
-                'solicitante' => $ticket->user->name,
-                'email' => $ticket->user->email,
-                'telefono' => $ticket->telefono,
-                'area' => $ticket->area,
-                'departamento' => $ticket->departamento,
-                'division' => $ticket->division,
-                'tipo_problema' => $ticket->tipo_problema,
-                'prioridad' => $ticket->prioridad,
-                'mensaje' => $ticket->descripcion,
-                'adjuntos' => $ticket->attachments->map(function ($file) {
-                    return [
-                        'nombre' => $file->file_name,
-                        'url' => asset('storage/' . $file->path)
-                    ];
-                }),
-            ]
-        ]);
-    }
 }
