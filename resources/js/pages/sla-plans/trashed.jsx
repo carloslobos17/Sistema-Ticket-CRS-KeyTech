@@ -90,16 +90,16 @@ export default function Trashed() {
                                 No
                             </button>
                         </div>
-                    ) : (
+                   ) : (
                         <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 hover:text-green-600"
+                            variant="outline"
+                            size="sm"
+                            className="hover:bg-green-600 hover:text-white"
                             onClick={() => setConfirmId(plan.id)}
                         >
-                            <RotateCcw className="h-4 w-4" />
+                            Restaurar
                         </Button>
-                    )}
+                    )} 
                 </div>
             ),
         },
