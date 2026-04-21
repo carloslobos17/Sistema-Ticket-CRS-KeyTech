@@ -16,13 +16,13 @@ Route::middleware(['auth'])->group(function () {
         return Inertia::render('dashboard');
     })->name('dashboard');
 
-     Route::middleware(['role:tecnico|admin'])->group(function () {
+    Route::middleware(['role:tecnico|admin'])->group(function () {
         Route::prefix('tecnico')->group(function () {
             Route::get('/dashboard', function () {
                 return Inertia::render('tecnico/Dashboard');
             })->name('tecnico.dashboard');
 
-            
+
             Route::get('/ticket/{id}', function ($id) {
                 return Inertia::render('dashboards/detalleTicket', ['id' => $id]);
             })->name('tecnico.ticket');
@@ -45,6 +45,7 @@ Route::middleware(['auth'])->group(function () {
         });
     });
 
+   Route::resource('tickets', TicketController::class);
 
     // Rutas de SLA Plans
     Route::get('/sla-plans/trashed', [SlaPlanController::class, 'trashed'])->name('sla-plans.trashed');
@@ -52,13 +53,10 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('/sla-plans',  SlaPlanController::class);
     // Rutas de prioridades
     Route::resource('priorities', PriorityController::class);
-    Route::resource('tickets', TicketController::class);
 
     Route::middleware(['permission:manage_users|view_area_dashboard'])->group(function () {
         Route::resource('users', UserController::class);
     });
-
-
 });
 
 require __DIR__ . '/settings.php';
