@@ -8,6 +8,7 @@ use App\Http\Controllers\SlaPlanController;
 use App\Http\Controllers\PriorityController;
 use App\Http\Controllers\TecnicoController;
 use App\Http\Controllers\TicketController;
+use App\Http\Controllers\TicketHistoryController;
 
 // ==========================================
 // 1. RUTAS PÚBLICAS
@@ -50,6 +51,7 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('/sla-plans',  SlaPlanController::class);
     // Rutas de prioridades
     Route::resource('priorities', PriorityController::class);
+    Route::resource('ticketHistory', TicketHistoryController::class);
     // --- D. ÁREA TÉCNICA (técnicos y administradores) ---
     Route::middleware(['role:agent|admin'])->prefix('tecnico')->group(function () {
 

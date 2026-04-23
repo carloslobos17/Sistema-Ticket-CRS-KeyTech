@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\TicketHistory;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 
 class TicketHistoryController extends Controller
 {
@@ -12,7 +13,16 @@ class TicketHistoryController extends Controller
      */
     public function index()
     {
-        //
+        $histories = TicketHistory::with([
+            'ticket', 
+            'user', 
+            'previousDepartment', 
+            'newDepartment'
+        ])->latest()->get();
+
+        return Inertia::render('history/index', [
+            'histories' => $histories
+        ]);
     }
 
     /**

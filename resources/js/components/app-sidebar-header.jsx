@@ -9,7 +9,7 @@ import { UserMenuContent } from '@/components/user-menu-content';
 import { useAppearance } from '@/hooks/use-appearance';
 import {
     Moon, Sun, Bell, ChevronDown,
-    LayoutGrid, Folder, ClipboardList, BookOpen, Settings, FileText, AlertTriangle, Users
+    LayoutGrid, Folder, ClipboardList, BookOpen, Settings, FileText, AlertTriangle, Users, History
 } from 'lucide-react';
 
 // ==========================================
@@ -24,7 +24,9 @@ const ICONS = {
     Settings,
     FileText,
     AlertTriangle,
-    Users
+    Users,
+    History
+    
 };
 
 // ==========================================
