@@ -20,9 +20,8 @@ return new class extends Migration
             $table->foreignIdFor(User::class)->constrained();
             $table->text('message');
             $table->date('date');
-            $table->json('attach')->nullable();
-            $table->string('type')->nullable();
             $table->foreignIdFor(SolutionType::class)->nullable()->constrained();
+            $table->text('message');
             $table->softDeletes();
             $table->timestamps();
         });

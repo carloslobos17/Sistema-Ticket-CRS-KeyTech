@@ -35,6 +35,8 @@ class TicketSolution extends Model
         return $this->morphMany(Attachment::class, 'attachable');
     }
 
+    
+
     public function solutionType()
     {
         return $this->belongsTo(SolutionType::class);
