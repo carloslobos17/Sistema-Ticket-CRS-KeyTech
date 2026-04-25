@@ -2,6 +2,7 @@ import { Link } from '@inertiajs/react';
 import axios from 'axios';
 import { Activity, AlertCircle, CheckCircle2, Clock, Computer, Globe, Monitor, Search } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { toast, Toaster } from 'sonner';
 
 
 export default function AgentDashboard() {
@@ -21,6 +22,14 @@ export default function AgentDashboard() {
     const [observacionDiagnostico, setObservacionDiagnostico] = useState('');
     const [adjuntosDiagnostico, setAdjuntosDiagnostico] = useState([]);
     const [diagnosticStatus, setDiagnosticStatus] = useState(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [showUnresolvedModal, setShowUnresolvedModal] = useState(false);
+    const [unresolvedData, setUnresolvedData] = useState({
+        avances: '',
+        justificacion: '',
+        adjuntos: []
+    });
+    const [validationErrors, setValidationErrors] = useState({});
 
     useEffect(() => {
         const fetchData = async () => {
@@ -120,8 +129,55 @@ export default function AgentDashboard() {
         }
     };
 
+    const submitUnresolved = async () => {
+        setValidationErrors({});
+        try {
+            if (!selectedTicketId) return;
+            
+            setIsSubmitting(true);
+            const formData = new FormData();
+            formData.append('avances', unresolvedData.avances);
+            formData.append('justificacion', unresolvedData.justificacion);
+            
+            unresolvedData.adjuntos.forEach(file => {
+                formData.append('adjuntos[]', file);
+            });
+
+            await axios.post(`/agent/ticket/${selectedTicketId}/no-resolver`, formData, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            });
+
+            toast.success('Reporte de incidencia enviado con éxito');
+            setUnresolvedData({ avances: '', justificacion: '', adjuntos: [] });
+            setShowUnresolvedModal(false);
+            setSelectedTicketId(null);
+            setShowDiagnosticPanel(false);
+
+            const response = await axios.get('/agent/dashboard-data');
+            setTicketsAsignados(response.data.tickets_asignados || []);
+            setHistorialFinalizados(response.data.historial_finalizados || []);
+            setEstadisticas(response.data.estadisticas || null);
+
+        } catch (error) {
+            if (error.response && error.response.status === 422) {
+                const errors = error.response.data.errors;
+                setValidationErrors(errors);
+                
+                // Mostrar primer error general
+                const firstError = Object.values(errors)[0][0];
+                toast.error(firstError);
+            } else {
+                console.error('Error al enviar reporte de incidencia:', error);
+                toast.error('Error crítico al enviar el reporte. Por favor intente más tarde.');
+            }
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
     return (
         <div className="mx-auto flex h-full w-full flex-col space-y-6 p-4 font-sans text-gray-800 sm:p-6 md:p-6 lg:p-8">
+            <Toaster position="top-right" richColors />
             {/* KPI Cards */}
             <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
                 <div className="group relative flex flex-col overflow-hidden rounded-xl border border-red-50 bg-gradient-to-br from-red-50 to-red-100 p-5 shadow-sm transition-colors hover:border-red-100">
@@ -350,6 +406,13 @@ export default function AgentDashboard() {
                                                                 {status}
                                                             </span>
                                                         );
+                                                    } else if (statusLower === 'no resuelto') {
+                                                        return (
+                                                            <span className="inline-flex items-center rounded-full border border-amber-200 bg-amber-100 px-2.5 py-1 text-xs font-bold text-amber-800">
+                                                                <span className="mr-1.5 h-2 w-2 rounded-full bg-amber-500"></span>
+                                                                {status}
+                                                            </span>
+                                                        );
                                                     } else if (statusLower === 'cancelado') {
                                                         return (
                                                             <span className="inline-flex items-center rounded-full border border-red-200 bg-red-100 px-2.5 py-1 text-xs font-bold text-red-800">
@@ -416,14 +479,19 @@ export default function AgentDashboard() {
                                                 {(() => {
                                                     const status = row.estado || row.status?.name || '';
                                                     const statusLower = status.toLowerCase();
-                                                    const isClosedOrResolved =
-                                                        statusLower === 'cerrado' || statusLower === 'resuelto' || statusLower === 'finalizado';
+                                                    const isTerminal =
+                                                        statusLower === 'cerrado' || 
+                                                        statusLower === 'resuelto' || 
+                                                        statusLower === 'finalizado' ||
+                                                        statusLower === 'no resuelto';
+                                                    
                                                     const tieneDiagnostico = row.tiene_diagnostico;
 
-                                                    if (isClosedOrResolved) {
+                                                    if (isTerminal) {
+                                                        const label = statusLower === 'no resuelto' ? 'Incidencia Reportada' : 'Diagnóstico Realizado';
                                                         return (
-                                                            <div className="w-full px-4 py-3 text-center text-xs font-medium text-green-600">
-                                                                Diagnóstico Realizado
+                                                            <div className={`w-full px-4 py-3 text-center text-xs font-medium ${statusLower === 'no resuelto' ? 'text-amber-600' : 'text-green-600'}`}>
+                                                                {label}
                                                             </div>
                                                         );
                                                     } else if (tieneDiagnostico) {
@@ -726,10 +794,119 @@ export default function AgentDashboard() {
 
                         <div className="flex justify-end gap-3">
                             <button
-                                className="rounded bg-red-600 px-6 py-2 text-xs font-bold text-white shadow-sm transition-colors hover:bg-red-700"
-                                onClick={submitDiagnostic}
+                                className="rounded-lg bg-slate-100 px-6 py-2.5 text-xs font-bold text-slate-600 transition-all hover:bg-slate-200"
+                                onClick={() => setShowUnresolvedModal(true)}
+                                disabled={isSubmitting}
                             >
-                                COMPLETAR DIAGNOSTICO
+                                NO PUEDO RESOLVER
+                            </button>
+                            <button
+                                className={`flex items-center gap-2 rounded-lg bg-red-600 px-6 py-2.5 text-xs font-bold text-white shadow-sm transition-all hover:bg-red-700 hover:shadow-md ${isSubmitting ? 'opacity-70 cursor-not-allowed' : ''}`}
+                                onClick={submitDiagnostic}
+                                disabled={isSubmitting}
+                            >
+                                {isSubmitting ? (
+                                    <div className="h-3 w-3 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                                ) : null}
+                                COMPLETAR DIAGNÓSTICO
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Modal Profesional para No Puede Resolver */}
+            {showUnresolvedModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+                    <div className="w-full max-w-xl overflow-hidden rounded-2xl bg-white shadow-2xl animate-in zoom-in-95 duration-200">
+                        <div className="bg-slate-50 px-6 py-4 border-b border-slate-100">
+                            <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+                                <AlertCircle className="w-5 h-5 text-red-600" /> Reporte de Incidencia Técnica
+                            </h3>
+                            <p className="text-xs text-slate-500 mt-1">Documente el proceso y la justificación de la no resolución.</p>
+                        </div>
+                        
+                        <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
+                            <div>
+                                <label className="block text-xs font-bold text-slate-700 uppercase mb-2">Avances Realizados</label>
+                                <textarea
+                                    className={`w-full h-24 rounded-xl border text-sm p-4 focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all ${validationErrors.avances ? 'border-red-500 bg-red-50' : 'border-slate-200'}`}
+                                    placeholder="Describa qué acciones se intentaron realizar..."
+                                    value={unresolvedData.avances}
+                                    onChange={(e) => setUnresolvedData({...unresolvedData, avances: e.target.value})}
+                                ></textarea>
+                                {validationErrors.avances && (
+                                    <p className="mt-1 text-[10px] font-bold text-red-600">{validationErrors.avances[0]}</p>
+                                )}
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-bold text-slate-700 uppercase mb-2">Justificación Técnica</label>
+                                <textarea
+                                    className={`w-full h-24 rounded-xl border text-sm p-4 focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all ${validationErrors.justificacion ? 'border-red-500 bg-red-50' : 'border-slate-200'}`}
+                                    placeholder="Explique el motivo por el cual no se pudo resolver..."
+                                    value={unresolvedData.justificacion}
+                                    onChange={(e) => setUnresolvedData({...unresolvedData, justificacion: e.target.value})}
+                                ></textarea>
+                                {validationErrors.justificacion && (
+                                    <p className="mt-1 text-[10px] font-bold text-red-600">{validationErrors.justificacion[0]}</p>
+                                )}
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-bold text-slate-700 uppercase mb-2">Evidencias del Proceso (Fotos/Videos/Logs)</label>
+                                <div className={`mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-dashed rounded-xl transition-colors ${validationErrors['adjuntos.0'] ? 'border-red-500 bg-red-50' : 'border-slate-300 hover:border-red-400'}`}>
+                                    <div className="space-y-1 text-center">
+                                        <div className="flex text-sm text-slate-600">
+                                            <label className="relative cursor-pointer bg-white rounded-md font-medium text-red-600 hover:text-red-500 focus-within:outline-none">
+                                                <span>Subir archivos</span>
+                                                <input 
+                                                    type="file" 
+                                                    className="sr-only" 
+                                                    multiple
+                                                    onChange={(e) => {
+                                                        if (e.target.files) {
+                                                            setUnresolvedData({...unresolvedData, adjuntos: Array.from(e.target.files)});
+                                                        }
+                                                    }}
+                                                />
+                                            </label>
+                                            <p className="pl-1">o arrastrar y soltar</p>
+                                        </div>
+                                        <p className="text-xs text-slate-500">PNG, JPG, PDF, MP4 hasta 10MB</p>
+                                        {unresolvedData.adjuntos.length > 0 && (
+                                            <p className="text-xs font-bold text-red-600 mt-2">
+                                                {unresolvedData.adjuntos.length} archivos seleccionados
+                                            </p>
+                                        )}
+                                        {validationErrors['adjuntos.0'] && (
+                                            <p className="mt-1 text-[10px] font-bold text-red-600">{validationErrors['adjuntos.0'][0]}</p>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="p-6 bg-slate-50 border-t border-slate-100 flex gap-3">
+                            <button
+                                className="flex-1 rounded-xl bg-white border border-slate-200 py-3 text-sm font-bold text-slate-600 transition-colors hover:bg-slate-50"
+                                onClick={() => {
+                                    setShowUnresolvedModal(false);
+                                    setUnresolvedData({ avances: '', justificacion: '', adjuntos: [] });
+                                }}
+                                disabled={isSubmitting}
+                            >
+                                Cancelar
+                            </button>
+                            <button
+                                className={`flex-1 flex items-center justify-center gap-2 rounded-xl bg-red-600 py-3 text-sm font-bold text-white shadow-lg shadow-red-600/20 transition-all hover:bg-red-700 ${isSubmitting ? 'opacity-70 cursor-not-allowed' : ''}`}
+                                onClick={submitUnresolved}
+                                disabled={isSubmitting}
+                            >
+                                {isSubmitting ? (
+                                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                                ) : null}
+                                Enviar Reporte Detallado
                             </button>
                         </div>
                     </div>

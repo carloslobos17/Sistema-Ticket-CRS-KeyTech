@@ -2,7 +2,7 @@ import { Link, Head } from '@inertiajs/react';
 
 import axios from 'axios';
 import { useEffect, useState } from 'react';
-import { ArrowLeft, Paperclip, Eye, Download, FileText, Image, Video, Activity } from 'lucide-react';
+import { ArrowLeft, Paperclip, Eye, Download, FileText, Image, Video, Activity, AlertCircle } from 'lucide-react';
 import AppLayout from '@/layouts/app-layout';
 
 export default function TicketDetails({ id }) {
@@ -212,17 +212,17 @@ export default function TicketDetails({ id }) {
 
                     {/* Diagnósticos Realizados */}
                     {data.soluciones && data.soluciones.length > 0 && (
-                        <div className="border border-gray-300 rounded-xl p-6 shadow-sm bg-white border-l-4 border-l-red-600">
-                            <h3 className="text-[17px] font-bold text-red-600 mb-4 flex items-center gap-2">
-                                <Activity className="w-5 h-5" /> Diagnósticos Realizados
+                        <div className="border border-gray-300 rounded-xl p-6 shadow-sm bg-white border-l-4 border-l-green-600">
+                            <h3 className="text-[17px] font-bold text-green-700 mb-4 flex items-center gap-2">
+                                <Activity className="w-5 h-5" /> Diagnósticos Finalizados
                             </h3>
                             <div className="space-y-6">
                                 {data.soluciones.map((sol, idx) => (
                                     <div key={idx} className="bg-gray-50 rounded-xl p-5 border border-gray-200 relative overflow-hidden">
-                                        <div className="absolute top-0 right-0 w-24 h-24 bg-red-500/5 -rotate-12 translate-x-8 -translate-y-8 rounded-full"></div>
+                                        <div className="absolute top-0 right-0 w-24 h-24 bg-green-500/5 -rotate-12 translate-x-8 -translate-y-8 rounded-full"></div>
                                         
                                         <div className="flex justify-between items-start mb-4">
-                                            <span className="inline-flex items-center rounded-lg bg-red-600 px-3 py-1 text-[10px] font-black text-white uppercase tracking-wider">
+                                            <span className="inline-flex items-center rounded-lg bg-green-600 px-3 py-1 text-[10px] font-black text-white uppercase tracking-wider">
                                                 {sol.tipo}
                                             </span>
                                             <span className="text-[10px] text-gray-500 font-bold bg-white px-2 py-1 rounded-md border border-gray-100">
@@ -247,6 +247,61 @@ export default function TicketDetails({ id }) {
                                                 </div>
                                             </div>
                                         )}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Incidencias Reportadas */}
+                    {data.incidencias && data.incidencias.length > 0 && (
+                        <div className="border border-gray-300 rounded-xl p-6 shadow-sm bg-white border-l-4 border-l-red-600">
+                            <h3 className="text-[17px] font-bold text-red-700 mb-4 flex items-center gap-2">
+                                <AlertCircle className="w-5 h-5" /> Incidencias Técnicas / Impedimentos
+                            </h3>
+                            <div className="space-y-6">
+                                {data.incidencias.map((inc, idx) => (
+                                    <div key={idx} className="bg-red-50/30 rounded-xl p-5 border border-red-100 relative overflow-hidden">
+                                        <div className="flex justify-between items-start mb-4">
+                                            <span className="inline-flex items-center rounded-lg bg-red-600 px-3 py-1 text-[10px] font-black text-white uppercase tracking-wider">
+                                                No Resuelto
+                                            </span>
+                                            <span className="text-[10px] text-gray-500 font-bold bg-white px-2 py-1 rounded-md border border-gray-100">
+                                                {new Date(inc.fecha).toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' })}
+                                            </span>
+                                        </div>
+                                        
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                            <div>
+                                                <h5 className="text-[11px] font-bold text-red-700 uppercase mb-2">Avances Realizados</h5>
+                                                <div className="text-xs text-slate-700 bg-white/80 p-3 rounded-lg border border-red-50 shadow-sm leading-relaxed whitespace-pre-wrap">
+                                                    {inc.avances}
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <h5 className="text-[11px] font-bold text-red-800 uppercase mb-2">Justificación Técnica</h5>
+                                                <div className="text-xs text-slate-700 bg-white/80 p-3 rounded-lg border border-red-100 shadow-sm leading-relaxed whitespace-pre-wrap font-medium italic">
+                                                    "{inc.justificacion}"
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        {inc.adjuntos && inc.adjuntos.length > 0 && (
+                                            <div className="mt-6 pt-4 border-t border-red-100">
+                                                <h5 className="text-[11px] font-bold text-red-700 uppercase mb-3 flex items-center gap-2">
+                                                    <Paperclip className="w-3 h-3" /> Evidencias de Incidencia
+                                                </h5>
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                    {inc.adjuntos.map((adj, sIdx) => (
+                                                        <AttachmentPreview key={sIdx} adj={adj} />
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+                                        
+                                        <div className="mt-4 flex items-center justify-end text-[10px] text-slate-400 font-medium">
+                                            Reportado por: {inc.tecnico}
+                                        </div>
                                     </div>
                                 ))}
                             </div>
