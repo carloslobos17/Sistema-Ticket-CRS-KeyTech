@@ -44,14 +44,16 @@ Route::middleware(['auth'])->group(function () {
     // MODIFICADO: Se añaden middlewares de permiso a cada método del resource
     // Para que no tengas que duplicar rutas, usamos ->middleware() en el resource
     Route::resource('tickets', TicketController::class);
-
+    Route::resource('tickets.history', TicketHistoryController::class);
+    
     // Rutas de SLA Plans
     Route::get('/sla-plans/trashed', [SlaPlanController::class, 'trashed'])->name('sla-plans.trashed');
     Route::put('/sla-plans/{id}/restore', [SlaPlanController::class, 'restore'])->name('sla-plans.restore');
     Route::resource('/sla-plans',  SlaPlanController::class);
     // Rutas de prioridades
     Route::resource('priorities', PriorityController::class);
-    Route::resource('ticketHistory', TicketHistoryController::class);
+
+    
     // --- D. ÁREA TÉCNICA (técnicos y administradores) ---
     Route::middleware(['role:agent|admin'])->prefix('tecnico')->group(function () {
 

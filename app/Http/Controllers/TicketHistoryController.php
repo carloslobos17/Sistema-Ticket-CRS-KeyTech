@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\TicketHistory;
+use App\Models\Ticket;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -11,18 +12,25 @@ class TicketHistoryController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Ticket $ticket)
     {
-        $histories = TicketHistory::with([
-            'ticket', 
-            'user', 
-            'previousDepartment', 
-            'newDepartment'
-        ])->latest()->get();
+        $ticket->load(['status', 'department', 'assignedUser']);
 
-        return Inertia::render('history/index', [
+        $histories = $ticket->histories()
+            ->with([
+                'user',               
+                'previousDepartment', 
+                'newDepartment'       
+            ])
+            ->latest() 
+            ->get();
+
+       
+        return Inertia::render('ticketHistory/index', [
+            'ticket' => $ticket,
             'histories' => $histories
         ]);
+        
     }
 
     /**
@@ -46,9 +54,9 @@ class TicketHistoryController extends Controller
      */
     public function show(TicketHistory $ticketHistory)
     {
-        //
+    
+    
     }
-
     /**
      * Show the form for editing the specified resource.
      */

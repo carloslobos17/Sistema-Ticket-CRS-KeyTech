@@ -104,12 +104,6 @@ class HandleInertiaRequests extends Middleware
             if ($user->hasPermissionTo('manage_users')) {
                 $nav[] = ['title' => 'Usuarios', 'url' => route('users.index'), 'icon' => 'Users'];
             }
-
-            $nav[] = [
-                'title' => 'Historial', 
-                'url' => route('ticketHistory.index'), 
-                'icon' => 'History'
-            ];
         }
 
         return [
