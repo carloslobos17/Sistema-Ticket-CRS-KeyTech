@@ -19,7 +19,6 @@ class TicketObserver
             'ticket_id'   => $ticket->id,
             'user_id'     => Auth::id() ?? $ticket->usuarios_id_solicitante ?? 1,
             'action_type' => ActionTypeEnum::CREATED,
-            'internal_note' => 'Ticket creado en el sistema.',
         ]);
     }
 

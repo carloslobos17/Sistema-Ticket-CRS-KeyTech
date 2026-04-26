@@ -15,10 +15,10 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 
 const actionMeta = {
-    creacion: { label: "Creación", icon: CircleDot, tone: "bg-blue-500/10 text-blue-600" },
-    cambio_departamento: { label: "Departamento", icon: ArrowRightLeft, tone: "bg-amber-500/10 text-amber-600" },
-    asignacion: { label: "Asignación", icon: UserPlus, tone: "bg-emerald-500/10 text-emerald-600" },
-    nota_interna: { label: "Nota interna", icon: StickyNote, tone: "bg-zinc-500/10 text-zinc-600" },
+    created: { label: "Creación", icon: CircleDot, tone: "bg-blue-500/10 text-blue-600" },
+    new_department: { label: "Departamento", icon: ArrowRightLeft, tone: "bg-amber-500/10 text-amber-600" },
+    assigned_user: { label: "Asignación", icon: UserPlus, tone: "bg-emerald-500/10 text-emerald-600" },
+    internal_note: { label: "Nota interna", icon: StickyNote, tone: "bg-zinc-500/10 text-zinc-600" },
     cambio_estado: { label: "Estado", icon: CircleDot, tone: "bg-violet-500/10 text-violet-600" },
 };
 
@@ -114,8 +114,9 @@ export default function index() {
                         ) : (
                             <div className="relative border-l-2 border-muted ml-3 space-y-10">
                                 {histories.map((entry) => {
-                                    const meta = actionMeta[entry.action_type] || actionMeta.nota_interna;
+                                    const meta = actionMeta[entry.action_type] || actionMeta.internal_note;
                                     const Icon = meta.icon;
+                                    console.log(entry)
 
                                     return (
                                         <div key={entry.id} className="relative pl-8">
@@ -138,7 +139,7 @@ export default function index() {
                                                         {entry.user?.name || 'Sistema'} <span className="text-muted-foreground font-normal">realizó un cambio</span>
                                                     </p>
 
-                                                    {entry.action_type === 'cambio_departamento' && (
+                                                    {entry.action_type === 'new_department' && (
                                                         <div className="flex items-center gap-2 text-xs font-mono bg-background/50 p-2 rounded border">
                                                             <span className="text-red-400 line-through">{entry.previous_department?.name}</span>
                                                             <ArrowRightLeft className="h-3 w-3" />

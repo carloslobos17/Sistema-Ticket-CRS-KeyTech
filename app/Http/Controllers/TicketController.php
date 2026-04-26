@@ -152,78 +152,7 @@ class TicketController extends Controller
         $sequence = $lastTicket ? intval(substr($lastTicket->code, -4)) + 1 : 1;
         return sprintf('%s-%s-%04d', $prefix, $date, $sequence);
     }
-
-
-    /**
-     * Store a newly created ticket (requires create_tickets permission).
-     */
-
-
-    public function store(StoreTicketRequest $request)
-    {
-        $validated = $request->validated();
-
-
-        $helpTopic = HelpTopic::with(['priority', 'slaPlan'])->findOrFail($validated['help_topic_id']);
-        $priority = $helpTopic->priority;
-        $slaPlan = $helpTopic->slaPlan;
-
-
-        $statusOpen = Status::where('name', 'Pendiente a asignación')->firstOrFail();
-
-
-        $code = $this->generateTicketCode();
-
-
-        $creationDate = Carbon::now();
-        $expirationDate = $slaPlan ? $creationDate->copy()->addHours($slaPlan->grace_time_hours) : null;
-
-
-        $ticket = Ticket::create([
-            'code'            => $code,
-            'creation_date'   => $creationDate,
-            'email'           => Auth::user()->email,
-            'subject'         => $validated['subject'],
-            'message'         => $validated['message'],
-            'attach'          => null,
-            'expiration_date' => $expirationDate,
-            'closing_date'    => null,
-            'requesting_user' => Auth::id(),
-            'assigned_user'   => null,
-            'help_topic_id'   => $helpTopic->id,
-            'priority_id'     => $priority->id ?? null,
-            'sla_plan_id'     => $slaPlan->id ?? null,
-            'department_id'   => $validated['department_id'],
-            'status_id'       => $statusOpen->id,
-        ]);
-
-
-        if ($request->hasFile('attachments')) {
-            foreach ($request->file('attachments') as $file) {
-                $path = $file->storeAs(
-                    "tickets/{$ticket->id}",
-                    Str::random(40) . '.' . $file->getClientOriginalExtension(),
-                    'public'
-                );
-                $ticket->attachments()->create([
-                    'file_name' => $file->getClientOriginalName(),
-                    'file_path' => $path,
-                    'file_type' => $file->getMimeType(),
-                    'file_size' => $file->getSize(),
-                ]);
-            }
-        }
-
-        $department = Department::with('heads')->find($ticket->department_id);
-        if ($department && $department->heads->count()) {
-            foreach ($department->heads as $head) {
-                $head->notify(new NewTicketNotification($ticket));
-            }
-        }
-
-        return redirect()->route('tickets.my')
-                        ->with('success', 'Ticket creado correctamente. El jefe del departamento lo asignará.');
-    }
+    
     /**
      * Display the specified ticket (requires view_all_tickets permission).
      */
