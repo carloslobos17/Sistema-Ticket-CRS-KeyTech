@@ -70,6 +70,7 @@ class TicketController extends Controller
         }
 
         $validated = $request->validated();
+        
 
         DB::beginTransaction();
 
@@ -120,6 +121,7 @@ class TicketController extends Controller
                     ]);
                 }
             }
+            
 
             // Disparar evento
             event(new \App\Events\TicketCreated($ticket));
@@ -130,6 +132,7 @@ class TicketController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
+            dd($e->getMessage(), $e->getFile(), $e->getLine());
             Log::error('Error al crear ticket: ' . $e->getMessage());
 
             return redirect()->back()->withInput()->with('error', 'Ocurrió un error al crear el ticket. Por favor, inténtelo de nuevo.');
