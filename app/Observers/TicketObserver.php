@@ -16,10 +16,10 @@ class TicketObserver
     public function created(Ticket $ticket): void
     {
         TicketHistory::create([
-            'ticket_id' => $ticket->id,
-            // Si Auth::id() es nulo (ej. creado por consola), usamos el solicitante
-            'user_id' => Auth::id() ?? $ticket->usuarios_id_solicitante,
+            'ticket_id'   => $ticket->id,
+            'user_id'     => Auth::id() ?? $ticket->usuarios_id_solicitante,
             'action_type' => ActionTypeEnum::CREATED,
+            'internal_note' => 'Ticket creado en el sistema.',
         ]);
     }
 

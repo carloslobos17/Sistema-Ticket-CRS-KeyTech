@@ -1,14 +1,14 @@
 import React from "react";
-import { Head, Link } from "@inertiajs/react";
+import { Head, Link, usePage } from "@inertiajs/react";
 import AppLayout from "@/layouts/app-layout";
-import { 
-  ArrowLeft, 
-  ArrowRightLeft, 
-  Clock, 
-  CircleDot, 
-  StickyNote, 
-  UserPlus,
-  History as HistoryIcon 
+import {
+    ArrowLeft,
+    ArrowRightLeft,
+    Clock,
+    CircleDot,
+    StickyNote,
+    UserPlus,
+    History as HistoryIcon
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -22,11 +22,12 @@ const actionMeta = {
     cambio_estado: { label: "Estado", icon: CircleDot, tone: "bg-violet-500/10 text-violet-600" },
 };
 
-export default function Show({ ticket, histories = [] }) {
-    
+export default function index() {
+    const { props } = usePage();
+    const { ticket, histories = [] } = props;
 
     if (!ticket) return <div className="p-10 text-center">Cargando datos del ticket...</div>;
-    console.log(ticket)
+    console.log(ticket);
 
     const formatDate = (iso) =>
         new Date(iso).toLocaleString("es-ES", {
@@ -53,7 +54,7 @@ export default function Show({ ticket, histories = [] }) {
                             <ArrowLeft className="mr-2 h-4 w-4" /> Volver
                         </Link>
                     </Button>
-                    
+
                     <div className="flex flex-col gap-1">
                         <span className="text-xs tracking-widest text-gray-500">
                             Historial del ticket
@@ -73,7 +74,9 @@ export default function Show({ ticket, histories = [] }) {
                             <div className="space-y-5">
                                 <div>
                                     <p className="text-[10px] uppercase font-bold text-muted-foreground">Estado</p>
-                                    <Badge className="mt-1 bg-gray-100 text-gray-700">{ticket.status?.name || 'S/D'}</Badge>
+                                    <Badge className="mt-1 bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300">
+                                        {ticket.status?.name || 'S/D'}
+                                    </Badge>
                                 </div>
                                 <Separator />
                                 <div>
@@ -83,13 +86,13 @@ export default function Show({ ticket, histories = [] }) {
                                 <Separator />
                                 <div>
                                     <p className="text-[10px] uppercase font-bold text-muted-foreground">Asignado a</p>
-                                
+
                                     <p className="font-medium text-sm">{ticket.assignedUser?.name || 'Sin asignar'}</p>
                                 </div>
                                 <Separator />
                                 <div>
                                     <p className="text-[10px] uppercase font-bold text-muted-foreground">Fecha de creacion</p>
-                                
+
                                     <p className="font-medium text-sm">{ticket.creation_date || 'Sin asignar'}</p>
                                 </div>
                             </div>

@@ -64,6 +64,6 @@ class TicketHistory extends Model
     public function newDepartment():BelongsTo
     {
         // Recuerda cambiar 'new_apartment' si lo corriges en la BD
-        return $this->belongsTo(Department::class, 'new_apartment');
+        return $this->belongsTo(Department::class, 'new_department');
     }
 }

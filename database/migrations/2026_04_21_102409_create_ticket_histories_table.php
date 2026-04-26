@@ -23,7 +23,6 @@ return new class extends Migration
             $table->text('internal_note');
             $table->foreignIdFor(Department::class, 'previous_department')->constrained();
             $table->foreignIdFor(Department::class, 'new_department')->nullable()->constrained();
-            $table->softDeletes();
             $table->timestamps();
         });
     }
