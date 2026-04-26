@@ -49,7 +49,6 @@ export default function Create() {
         message: "",
         attachments: [], // será un array de archivos
     });
-    console.log(data)
 
     const filteredDivisions = dept
         ? divisions.filter((d) => parseInt(d.department_id) === parseInt(dept))
@@ -136,6 +135,9 @@ const handleFileChange = (e) => {
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Nuevo Ticket" />
+
+
+
             <form
                 onSubmit={handleGoToPreview}
                 className="flex flex-col w-full p-4 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800"

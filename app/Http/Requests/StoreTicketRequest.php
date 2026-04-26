@@ -22,16 +22,18 @@ class StoreTicketRequest extends FormRequest
      */
     public function rules(): array
     {
-       return [
+       // app/Http/Requests/StoreTicketRequest.php
+        return [
             'department_id' => 'required|exists:departments,id',
-            'division_id'   => 'required|exists:divisions,id',
+            'division_id' => 'required|exists:divisions,id',
             'help_topic_id' => 'required|exists:help_topics,id',
-            'subject'       => 'required|string|max:200',
-            'message'       => 'required|string',
-            'attachments'   => 'nullable|array',
-        'attachments.*' => 'file|max:10240|mimes:jpg,jpeg,png,pdf,doc,docx',
+            'subject' => 'required|string|max:255',
+            'message' => 'required|string',
+            'attachments' => 'nullable|array',
+            'attachments.*' => 'file|max:10240',
         ];
     }
+    
 
     public function messages(): array
     {

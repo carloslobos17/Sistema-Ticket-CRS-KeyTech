@@ -21,6 +21,9 @@ class DatabaseSeeder extends Seeder
             RoleSeeder::class,
             UserSeeder::class,
             UserRoleSeeder::class,
+            DepartmentHeadSeeder::class,
+            StatusesTableSeeder::class,
+            PrioritiesTableSeeder::class,
             TecnicoDataSeeder::class,
         ]);
 

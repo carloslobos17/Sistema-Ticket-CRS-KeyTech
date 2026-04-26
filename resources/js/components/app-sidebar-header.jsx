@@ -5,11 +5,28 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
+import { NotificationsDropdown } from '@/components/NotificationsDropdown';
 import { UserMenuContent } from '@/components/user-menu-content';
 import { useAppearance } from '@/hooks/use-appearance';
 import {
     Moon, Sun, Bell, ChevronDown,
     LayoutGrid, Folder, ClipboardList, BookOpen, Settings, FileText, AlertTriangle, Users, History
+    Moon,
+    Sun,
+    Bell,
+    ChevronDown,
+    LayoutGrid,
+    Folder,
+    ClipboardList,
+    BookOpen,
+    Settings,
+    FileText,
+    AlertTriangle,
+    Users,
+    Ticket,
+    PlusCircle,
+    List,
+    HelpCircle,
 } from 'lucide-react';
 
 // ==========================================
@@ -26,7 +43,10 @@ const ICONS = {
     AlertTriangle,
     Users,
     History
-    
+    Ticket,
+    PlusCircle,
+    List,
+    HelpCircle,
 };
 
 // ==========================================
@@ -59,10 +79,7 @@ export function AppSidebarHeader({ breadcrumbs = [] }) {
                         {appearance === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
                     </button>
 
-                    <button className="relative flex h-8 w-8 items-center justify-center rounded-full bg-secondary text-muted-foreground hover:text-foreground transition-colors">
-                        <Bell className="w-4 h-4" />
-                        <span className="absolute top-0 right-0 h-2 w-2 rounded-full bg-destructive border border-background"></span>
-                    </button>
+                    <NotificationsDropdown />
 
                     <div className="h-6 w-px bg-border hidden md:block"></div>
 
@@ -71,7 +88,7 @@ export function AppSidebarHeader({ breadcrumbs = [] }) {
                             <button className="flex items-center gap-3 outline-none hover:bg-accent hover:text-accent-foreground p-1.5 rounded-md transition-colors cursor-pointer text-left">
                                 <div className="hidden text-right md:block">
                                     <span className="block text-sm font-medium text-foreground">
-                                        {auth?.user?.name || 'Meli'}
+                                        {auth?.user?.name || 'Administrador'}
                                     </span>
                                     <span className="block text-xs text-muted-foreground capitalize">
                                         {auth?.user?.roles?.[0] || 'Usuario'}

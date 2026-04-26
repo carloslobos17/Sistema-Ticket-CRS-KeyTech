@@ -7,7 +7,7 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class NewTicketNotification extends Notification
+class TicketAssignedNotification extends Notification
 {
     use Queueable;
 
@@ -25,15 +25,13 @@ class NewTicketNotification extends Notification
 
     public function toMail($notifiable)
     {
-        $url = route('tickets.unassigned'); 
-
+        $url = route('tickets.show', $this->ticket->id);
         return (new MailMessage)
-            ->subject('Nuevo ticket pendiente: ' . $this->ticket->code)
-            ->line('Se ha creado un nuevo ticket en tu departamento.')
+            ->subject('Ticket asignado: ' . $this->ticket->code)
+            ->line('Se te ha asignado un nuevo ticket.')
             ->line('Asunto: ' . $this->ticket->subject)
-            ->line('Solicitante: ' . $this->ticket->requestingUser->name)
-            ->action('Ver y asignar ticket', $url)
-            ->line('Por favor, asigna un técnico para su atención.');
+            ->action('Ver ticket', $url)
+            ->line('Por favor, atiéndelo a la brevedad.');
     }
 
     public function toDatabase($notifiable)
@@ -42,9 +40,8 @@ class NewTicketNotification extends Notification
             'ticket_id' => $this->ticket->id,
             'ticket_code' => $this->ticket->code,
             'subject' => $this->ticket->subject,
-            'message' => 'Nuevo ticket pendiente de asignación.',
-            'type' => 'new_ticket',
-            'url' => route('tickets.unassigned'),
+            'message' => 'Se te ha asignado un ticket.',
+            'type' => 'ticket_assigned'
         ];
     }
 }

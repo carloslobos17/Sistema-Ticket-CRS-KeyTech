@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PublicController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
@@ -26,6 +27,13 @@ Route::middleware(['auth'])->group(function () {
         return Inertia::render('dashboard');
     })->name('dashboard');
 
+   Route::patch('/notifications/{id}/read', [NotificationController::class, 'markAsRead'])->name('notifications.read');
+    Route::post('/notifications/mark-all-read', [NotificationController::class, 'markAllAsRead'])->name('notifications.read-all');
+    Route::get('/notifications/fetch', [NotificationController::class, 'fetch'])->name('notifications.fetch');
+
+    
+
+    Route::post('/tickets/{ticket}/asignar', [TicketController::class, 'assign'])->name('tickets.assign');
     // ==========================================
     // NUEVO: RUTAS ESPECÍFICAS PARA TICKETS (antes del resource)
     // ==========================================
@@ -39,6 +47,8 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/tickets/pendientes', [TicketController::class, 'unassigned'])->name('tickets.unassigned');
         Route::post('/tickets/{ticket}/asignar', [TicketController::class, 'assign'])->name('tickets.assign');
     });
+
+
 
     // --- C. CRUD DE TICKETS con permisos granulares ---
     // MODIFICADO: Se añaden middlewares de permiso a cada método del resource
@@ -55,10 +65,8 @@ Route::middleware(['auth'])->group(function () {
 
     
     // --- D. ÁREA TÉCNICA (técnicos y administradores) ---
-    Route::middleware(['role:agent|admin'])->prefix('tecnico')->group(function () {
-
-        Route::get('/dashboard', function () {
-            return Inertia::render('tecnico/Dashboard');
+    Route::middleware(['role:agent|admin'])->prefix('agent')->group(function () {Route::get('/dashboard', function () {
+        return Inertia::render('dashboards/agent-dashboard');
         })->name('agent.dashboard');
 
         Route::get('/ticket/{id}', function ($id) {
@@ -78,6 +86,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/tickets-asignados', [TecnicoController::class, 'ticketsAsignados']);
         Route::get('/ver-ticket/{id}', [TecnicoController::class, 'verTicket']);
         Route::post('/ticket/{id}/diagnostico', [TecnicoController::class, 'guardarDiagnostico']);
+        Route::post('/ticket/{id}/no-resolver', [TecnicoController::class, 'noPuedeResolver']);
     });
 
     // --- E. CATÁLOGOS (solo usuarios con permiso) ---

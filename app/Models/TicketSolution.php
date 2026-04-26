@@ -18,8 +18,9 @@ class TicketSolution extends Model
         'solution_type_id',
     ];
 
-    protected $casts = [  'date' => 'date',
-                            'attach' => 'array'];
+    protected $casts = [
+        'date' => 'date',
+    ];
 
     public function ticket(): BelongsTo
     {
@@ -34,6 +35,8 @@ class TicketSolution extends Model
     {
         return $this->morphMany(Attachment::class, 'attachable');
     }
+
+    
 
     public function solutionType()
     {
