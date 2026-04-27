@@ -5,7 +5,6 @@ namespace App\Observers;
 use App\Enums\ActionTypeEnum;
 use App\Models\Ticket;
 use App\Models\TicketHistory;
-use App\Enums\TicketActionType;
 use Illuminate\Support\Facades\Auth;
 
 class TicketObserver
@@ -15,11 +14,7 @@ class TicketObserver
      */
     public function created(Ticket $ticket): void
     {
-        TicketHistory::create([
-            'ticket_id'   => $ticket->id,
-            'user_id'     => Auth::id() ?? $ticket->usuarios_id_solicitante ?? 1,
-            'action_type' => ActionTypeEnum::CREATED,
-        ]);
+        $this->createHistory($ticket, ActionTypeEnum::CREATED);
     }
 
     /**
@@ -27,38 +22,38 @@ class TicketObserver
      */
     public function updated(Ticket $ticket): void
     {
-        $userId = Auth::id() ?? 1; // 1 como fallback temporal para pruebas
-
-        // 1. ¿Cambió el estado?
-        if ($ticket->wasChanged('estado_id')) {
-            TicketHistory::create([
-                'ticket_id' => $ticket->id,
-                'user_id' => $userId,
-                'action_type' => ActionTypeEnum::STATUS_CHANGED,
-                'internal_note' => "Estado cambiado del ID {$ticket->getOriginal('estado_id')} al {$ticket->estado_id}"
+        // cambio de estado
+        if ($ticket->wasChanged('status_id')) {
+            $this->createHistory($ticket, ActionTypeEnum::STATUS_CHANGED, [
+                'internal_note' => "Estado cambiado del ID {$ticket->getOriginal('status_id')} al {$ticket->status_id}"
             ]);
         }
 
-        // 2. ¿Se asignó a un técnico distinto?
-        if ($ticket->wasChanged('usuarios_id_asignado')) {
-            TicketHistory::create([
-                'ticket_id' => $ticket->id,
-                'user_id' => $userId,
-                'action_type' => ActionTypeEnum::ASSIGNED,
-                'assigned_user' => $ticket->usuarios_id_asignado,
+        // asignacion de ticket
+        if ($ticket->wasChanged('assigned_user')) {
+            $this->createHistory($ticket, ActionTypeEnum::ASSIGNED, [
+                'assigned_user' => $ticket->assigned_user,
             ]);
         }
 
-        // 3. ¿Se transfirió de departamento?
-        if ($ticket->wasChanged('departamentos_id')) {
-            TicketHistory::create([
-                'ticket_id' => $ticket->id,
-                'user_id' => $userId,
-                'action_type' => ActionTypeEnum::DEPARTMENT_TRANSFERRED,
-                // getOriginal() nos da el valor que tenía antes de guardar
-                'previous_department' => $ticket->getOriginal('departamentos_id'),
-                'new_department' => $ticket->departamentos_id,
+        // cambio de departamento
+        if ($ticket->wasChanged('department_id')) {
+            $this->createHistory($ticket, ActionTypeEnum::DEPARTMENT_TRANSFERRED, [
+                'previous_department' => $ticket->getOriginal('department_id'),
+                'new_department'      => $ticket->department_id,
             ]);
         }
+    }
+
+    /**
+     * Método privado para centralizar la creación del historial.
+     */
+    private function createHistory(Ticket $ticket, ActionTypeEnum $action, array $data = []): void
+    {
+        TicketHistory::create(array_merge([
+            'ticket_id'   => $ticket->id,
+            'user_id'     => Auth::id() ?? $ticket->requesting_user ?? 1,
+            'action_type' => $action,
+        ], $data));
     }
 }

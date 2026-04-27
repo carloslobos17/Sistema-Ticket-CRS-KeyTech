@@ -20,7 +20,8 @@ class TicketHistoryController extends Controller
             ->with([
                 'user',               
                 'previousDepartment', 
-                'newDepartment'       
+                'newDepartment',
+                'assignedTo'       
             ])
             ->latest() 
             ->get();

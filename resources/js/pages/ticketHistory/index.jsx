@@ -16,10 +16,10 @@ import { Separator } from "@/components/ui/separator";
 
 const actionMeta = {
     created: { label: "Creación", icon: CircleDot, tone: "bg-blue-500/10 text-blue-600" },
-    new_department: { label: "Departamento", icon: ArrowRightLeft, tone: "bg-amber-500/10 text-amber-600" },
-    assigned_user: { label: "Asignación", icon: UserPlus, tone: "bg-emerald-500/10 text-emerald-600" },
+    department_transferred: { label: "Departamento", icon: ArrowRightLeft, tone: "bg-amber-500/10 text-amber-600" },
+    assigned: { label: "Asignación", icon: UserPlus, tone: "bg-emerald-500/10 text-emerald-600" },
     internal_note: { label: "Nota interna", icon: StickyNote, tone: "bg-zinc-500/10 text-zinc-600" },
-    cambio_estado: { label: "Estado", icon: CircleDot, tone: "bg-violet-500/10 text-violet-600" },
+    status_changed: { label: "Estado", icon: CircleDot, tone: "bg-violet-500/10 text-violet-600" },
 };
 
 export default function index() {
@@ -27,7 +27,6 @@ export default function index() {
     const { ticket, histories = [] } = props;
 
     if (!ticket) return <div className="p-10 text-center">Cargando datos del ticket...</div>;
-    console.log(ticket);
 
     const formatDate = (iso) =>
         new Date(iso).toLocaleString("es-ES", {
@@ -41,6 +40,23 @@ export default function index() {
         { title: "Tickets", href: "/tickets" },
         { title: `Historial #${displayCode}`, href: "#" },
     ];
+
+    const getActionText = (entry) => {
+        switch (entry.action_type) {
+            case 'created':
+                return "creó el ticket";
+            case 'assigned':
+                return "asignó este ticket a";
+            case 'department_transferred':
+                return "transfirió el ticket de departamento";
+            case 'status_changed':
+                return "cambió el estado del ticket";
+            case 'internal_note':
+                return "agregó una nota interna";
+            default:
+                return "realizó una actualización";
+        }
+    };
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -87,7 +103,7 @@ export default function index() {
                                 <div>
                                     <p className="text-[10px] uppercase font-bold text-muted-foreground">Asignado a</p>
 
-                                    <p className="font-medium text-sm">{ticket.assignedUser?.name || 'Sin asignar'}</p>
+                                    <p className="font-medium text-sm">{ticket.assigned_user?.name || 'Sin asignar'}</p>
                                 </div>
                                 <Separator />
                                 <div>
@@ -136,14 +152,19 @@ export default function index() {
 
                                                 <div className="bg-muted/30 border rounded-lg p-4">
                                                     <p className="text-sm font-medium mb-2">
-                                                        {entry.user?.name || 'Sistema'} <span className="text-muted-foreground font-normal">realizó un cambio</span>
+                                                        {entry.user?.name || 'Sistema'} <span className="text-muted-foreground font-normal">{getActionText(entry)}</span>
                                                     </p>
-
-                                                    {entry.action_type === 'new_department' && (
+                                                    {entry.action_type === 'assigned' && (
                                                         <div className="flex items-center gap-2 text-xs font-mono bg-background/50 p-2 rounded border">
-                                                            <span className="text-red-400 line-through">{entry.previous_department?.name}</span>
+                                                            <span className="text-emerald-500 font-bold">{entry.assigned_to?.name}</span>
+                                                        </div>
+                                                    )}
+
+                                                    {entry.action_type === 'department_transferred' && (
+                                                        <div className="flex items-center gap-2 text-xs font-mono bg-background/50 p-2 rounded border">
+                                                            <span className="text-red-400">{entry.previous_department?.name}</span>
                                                             <ArrowRightLeft className="h-3 w-3" />
-                                                            <span className="text-emerald-500 font-bold">{entry.new_department?.name}</span>
+                                                            <span className="text-amber-500 font-bold">{entry.new_department?.name}</span>
                                                         </div>
                                                     )}
 
