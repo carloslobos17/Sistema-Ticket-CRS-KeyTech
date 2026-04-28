@@ -175,6 +175,10 @@ class TicketController extends Controller
                         ->orderBy('created_at', 'desc')
                         ->get();
         $resueltos = TicketSolution::with(['ticket','user','ticket.department'])
+                        ->whereHas('ticket', function($query) {
+                            $query->where('requesting_user', auth()->id());
+                        })
+                        ->whereDoesntHave('ticket.qualification')
                         ->orderBy('created_at', 'desc')
                         ->get();
         
