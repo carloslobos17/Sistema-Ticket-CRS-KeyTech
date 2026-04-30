@@ -25,6 +25,7 @@ class DatabaseSeeder extends Seeder
             StatusesTableSeeder::class,
             PrioritiesTableSeeder::class,
             TecnicoDataSeeder::class,
+            SolutionTypeSeeder::class,
         ]);
 
     }
