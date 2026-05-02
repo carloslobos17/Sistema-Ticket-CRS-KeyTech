@@ -12,13 +12,25 @@ class KnowledgeController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $knowledges = knowledge::with('category')->latest()->paginate(10);
+        $knowledges = knowledge::with('category')
+            ->when($request->search, function ($query, $search) {
+                $query->where('title', 'like', "%{$search}%");
+            })
+            ->when($request->category_id, function ($query, $categoryId) {
+                $query->where('category_id', $categoryId);
+            })
+            ->latest()
+            ->paginate(10)
+            ->withQueryString();
+
         $categories = Category::all();
+
         return Inertia::render('faqs/Faq', [
             'knowledges' => $knowledges,
             'categories' => $categories,
+            'filters' => $request->only(['search', 'category_id']),
         ]);
     }
 
