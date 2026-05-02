@@ -17,6 +17,11 @@ use App\Http\Controllers\TicketController;
 // ==========================================
 Route::get('/', [PublicController::class, 'index'])->name('home');
 
+
+//-----prueva del json
+   Route::get('ratings-dashboard', [\App\Http\Controllers\TechnicalRatingsController::class, 'index'])
+      ->name('ratings.dashboard');
+
 // ==========================================
 // 2. RUTAS AUTENTICADAS
 // ==========================================
