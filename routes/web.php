@@ -54,7 +54,7 @@ Route::middleware(['auth'])->group(function () {
     // MODIFICADO: Se añaden middlewares de permiso a cada método del resource
     // Para que no tengas que duplicar rutas, usamos ->middleware() en el resource
     Route::resource('tickets', TicketController::class);
-    Route::resource('tickets.history', TicketHistoryController::class);
+    Route::resource('tickets.history', TicketHistoryController::class)->only(['index']);
     
     // Rutas de SLA Plans
     Route::get('/sla-plans/trashed', [SlaPlanController::class, 'trashed'])->name('sla-plans.trashed');

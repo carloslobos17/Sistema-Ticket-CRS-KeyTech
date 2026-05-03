@@ -18,29 +18,58 @@ class TicketObserver
     }
 
     /**
-     * Se ejecuta cada vez que se hace un $ticket->save() y hay cambios.
+     * Se ejecuta antes de que los cambios se guarden en la base de datos.
+     * Utilizamos isDirty() para detectar qué campos están cambiando en esta petición
+     * y getOriginal() para capturar los valores previos antes de que se sobrescriban.
      */
-    public function updated(Ticket $ticket): void
+    public function updating(Ticket $ticket): void
     {
-        // cambio de estado
-        if ($ticket->wasChanged('status_id')) {
+        // DETECTAR CAMBIO DE ESTADO
+        if ($ticket->isDirty('status_id')) {
+            $oldStatusId = $ticket->getOriginal('status_id');
+            $newStatusId = $ticket->status_id;
+            
+            // Buscamos los nombres de los estados para que el historial sea legible
+            $oldStatus = \App\Models\Status::find($oldStatusId);
+            $newStatus = \App\Models\Status::find($newStatusId);
+
             $this->createHistory($ticket, ActionTypeEnum::STATUS_CHANGED, [
-                'internal_note' => "Estado cambiado del ID {$ticket->getOriginal('status_id')} al {$ticket->status_id}"
+                'internal_note' => "Estado actualizado: de '" . ($oldStatus->name ?? 'N/A') . "' a '{$newStatus->name}'"
             ]);
         }
 
-        // asignacion de ticket
-        if ($ticket->wasChanged('assigned_user')) {
-            $this->createHistory($ticket, ActionTypeEnum::ASSIGNED, [
-                'assigned_user' => $ticket->assigned_user,
+        // DETECTAR REASIGNACIÓN DE TÉCNICO
+        if ($ticket->isDirty('assigned_user')) {
+            $oldAssignedId = $ticket->getOriginal('assigned_user');
+            $newAssignedId = $ticket->assigned_user;
+            
+            // Si el nuevo ID existe, es una asignación; si es null, es una desasignación.
+            $action = $newAssignedId ? ActionTypeEnum::ASSIGNED : ActionTypeEnum::UNASSIGNED;
+            
+            $this->createHistory($ticket, $action, [
+                'assigned_user' => $newAssignedId,
+                'internal_note' => $newAssignedId 
+                    ? "Ticket reasignado al técnico. (Anterior ID: " . ($oldAssignedId ?? 'Sin asignar') . ")"
+                    : "El ticket ha sido desasignado del técnico ID: {$oldAssignedId}"
             ]);
         }
 
-        // cambio de departamento
-        if ($ticket->wasChanged('department_id')) {
+        // DETECTAR TRANSFERENCIA DE DEPARTAMENTO
+        if ($ticket->isDirty('department_id')) {
             $this->createHistory($ticket, ActionTypeEnum::DEPARTMENT_TRANSFERRED, [
                 'previous_department' => $ticket->getOriginal('department_id'),
                 'new_department'      => $ticket->department_id,
+                'internal_note'       => "El ticket fue transferido entre departamentos por necesidades de servicio."
+            ]);
+        }
+
+        // DETECTAR CAMBIO DE PRIORIDAD
+        if ($ticket->isDirty('priority_id')) {
+            $oldPriority = \App\Models\Priority::find($ticket->getOriginal('priority_id'));
+            $newPriority = \App\Models\Priority::find($ticket->priority_id);
+
+            $this->createHistory($ticket, ActionTypeEnum::PRIORITY_CHANGED, [
+                'internal_note' => "Prioridad modificada: de '" . ($oldPriority->name ?? 'N/A') . "' a '" . ($newPriority->name ?? 'N/A') . "'"
             ]);
         }
     }
