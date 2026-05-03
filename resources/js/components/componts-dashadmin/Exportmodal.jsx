@@ -71,10 +71,10 @@ async function doExportExcel({ selected, data, dateRange }) {
     }
     if (selected.tabla) {
         addSheet('Tickets Activos', [
-            ['Código', 'Asunto', 'Categoría', 'Prioridad', 'Progreso (%)'],
+            ['Código', 'Asunto', 'Departamento', 'Prioridad'],
             ...data.tickets.map((t) => [
-                t.id, t.subject, t.categoryInitial,
-                t.priority ?? 'No asignado', t.progress,
+                t.id, t.subject, t.department_name ?? '—',
+                t.priority ?? 'No asignado',
             ]),
         ]);
     }
@@ -198,11 +198,11 @@ async function doExportPDF({ selected, data, dateRange }) {
     // ── tabla tickets ──
     if (selected.tabla) {
         heading('Tickets Activos');
-        const cw = [22, (W - M * 2) - 22 - 18 - 22 - 20, 18, 22, 20];
-        table(['Código', 'Asunto', 'Cat.', 'Prioridad', 'Progreso'], cw,
+        const cw = [25, (W - M * 2) - 25 - 50 - 25, 50, 25];
+        table(['Código', 'Asunto', 'Departamento', 'Prioridad'], cw,
             data.tickets.map((t) => [
-                t.id, t.subject, t.categoryInitial,
-                t.priority ?? 'N/A', `${t.progress}%`,
+                t.id, t.subject, t.department_name ?? '—',
+                t.priority ?? 'N/A',
             ])
         );
     }

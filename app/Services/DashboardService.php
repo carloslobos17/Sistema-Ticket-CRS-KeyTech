@@ -247,6 +247,7 @@ class DashboardService
             ->when($to,   fn($q) => $q->whereDate('creation_date', '<=', $to))
             ->whereNull('deleted_at')
             ->orderByDesc('creation_date')
+            ->limit(18)
             ->get()
             ->map(function (Ticket $t) {
                 // Color por prioridad usando el color almacenado en BD
@@ -270,7 +271,7 @@ class DashboardService
                         ? [['name' => $t->assignedUser->name, 'color' => $priorityColor]]
                         : [],
                     'priority'        => $t->priority?->name,
-                    'progress'        => $this->calcProgress($t),
+                    'department_name' => $t->department?->name,    
 
                     // ── campos preview ──
                     'code'             => $t->code,

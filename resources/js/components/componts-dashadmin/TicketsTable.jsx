@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Download } from 'lucide-react';
-import { ProgressBar } from '@/components/componts-dashadmin/dash-components';
+// import { ProgressBar } from '@/components/componts-dashadmin/dash-components';
 
 const PAGE_SIZE = 6;
 
@@ -88,7 +88,7 @@ export default function TicketsTable({ tickets = [], total = 0, onExport, onVerT
                             <th className="py-2.5 pl-5 pr-3 text-left text-[10px] font-semibold uppercase tracking-widest text-gray-400">Ticket</th>
                             <th className="px-3 py-2.5 text-left text-[10px] font-semibold uppercase tracking-widest text-gray-400">Agente asignado</th>
                             <th className="px-3 py-2.5 text-left text-[10px] font-semibold uppercase tracking-widest text-gray-400">Prioridad</th>
-                            <th className="py-2.5 pl-3 pr-5 text-right text-[10px] font-semibold uppercase tracking-widest text-gray-400">Progreso</th>
+                            <th className="px-3 py-2.5 text-left text-[10px] font-semibold uppercase tracking-widest text-gray-400">Departamento</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-sidebar-border">
@@ -135,8 +135,10 @@ export default function TicketsTable({ tickets = [], total = 0, onExport, onVerT
                                             <span className="text-xs text-gray-400">No asignado</span>
                                         )}
                                     </td>
-                                    <td className="py-3 pl-3 pr-5">
-                                        <ProgressBar pct={t.progress} />
+                                   <td className="px-3 py-3">
+                                        <span className="text-xs text-gray-600 dark:text-gray-400">
+                                        {t.department_name ?? '—'}
+                                        </span>
                                     </td>
                                 </tr>
                             ))
