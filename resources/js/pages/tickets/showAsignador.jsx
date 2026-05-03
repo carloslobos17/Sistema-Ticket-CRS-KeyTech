@@ -7,7 +7,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { ArrowLeft, User, Clock, Tag, Briefcase, FileText, Loader2, CheckCircle, RefreshCcw } from 'lucide-react';
+// Añadimos MessageSquare a los iconos
+import { ArrowLeft, User, Clock, Tag, Briefcase, FileText, Loader2, CheckCircle, RefreshCcw, MessageSquare } from 'lucide-react';
 import { route } from 'ziggy-js';
 
 export default function ShowAsignador({ ticket, departments, divisions, helpTopics, slaPlans, priorities, tecnicos }) {
@@ -90,10 +91,9 @@ export default function ShowAsignador({ ticket, departments, divisions, helpTopi
                         </div>
                     </div>
 
-                    {/* BOTONES DE ACCIÓN PARA EL ASIGNADOR */}
                     <div className="flex gap-3 w-full sm:w-auto">
                         <Button
-                            className="bg-blue-600 hover:bg-blue-700 w-full sm:w-auto text-white"
+                            className="bg-blue-600 hover:bg-blue-700 w-full sm:w-auto text-white font-bold"
                             onClick={() => setOpenReasignar(true)}
                         >
                             <RefreshCcw className="w-4 h-4 mr-2" />
@@ -103,7 +103,7 @@ export default function ShowAsignador({ ticket, departments, divisions, helpTopi
                         {statusName !== 'Cerrado' && (
                             <Button
                                 variant="destructive"
-                                className="bg-red-600 hover:bg-red-700 w-full sm:w-auto"
+                                className="bg-red-600 hover:bg-red-700 w-full sm:w-auto font-bold"
                                 onClick={() => setOpenCerrar(true)}
                             >
                                 <CheckCircle className="w-4 h-4 mr-2" />
@@ -113,22 +113,57 @@ export default function ShowAsignador({ ticket, departments, divisions, helpTopi
                     </div>
                 </div>
 
-                {/* DETALLES DEL TICKET (Mismo diseño que el show del usuario) */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     <div className="lg:col-span-2 space-y-6">
+                        {/* Descripción del Problema */}
                         <div className="bg-white border border-zinc-200 rounded-xl p-6 shadow-sm">
-                            <h2 className="text-lg font-semibold mb-4 text-zinc-900">
+                            <h2 className="text-lg font-semibold mb-4 text-zinc-900 border-b pb-2">
                                 {ticket.subject}
                             </h2>
-                            <div className="text-zinc-700 whitespace-pre-wrap bg-zinc-50 p-4 rounded-lg border border-zinc-100">
+                            <div className="text-zinc-700 whitespace-pre-wrap bg-zinc-50 p-4 rounded-lg border border-zinc-100 text-sm leading-relaxed">
                                 {ticket.message}
                             </div>
                         </div>
+
+                        {/* ========================================== */}
+                        {/* BITÁCORA DE NOTAS INTERNAS (DEL TÉCNICO)   */}
+                        {/* ========================================== */}
+                        {ticket.histories && ticket.histories.filter(h => h.internal_note).length > 0 && (
+                            <div className="bg-yellow-50/50 border border-yellow-200 rounded-2xl p-6 shadow-sm">
+                                <h3 className="text-sm font-bold text-yellow-800 uppercase mb-4 flex items-center gap-2 tracking-wider">
+                                    <MessageSquare className="w-4 h-4" />
+                                    Comunicación Interna Técnica
+                                </h3>
+
+                                <div className="space-y-4">
+                                    {ticket.histories
+                                        .filter(h => h.internal_note)
+                                        .map((nota, index) => (
+                                            <div key={index} className="bg-white p-4 rounded-xl border border-yellow-100 shadow-sm relative">
+                                                {/* Etiqueta del Rol */}
+                                                <div className="absolute top-4 right-4 text-[10px] font-black px-2 py-0.5 bg-zinc-100 rounded text-zinc-400 uppercase">
+                                                    {nota.user?.roles?.[0] || 'Staff'}
+                                                </div>
+
+                                                <p className="text-sm text-zinc-700 whitespace-pre-wrap pr-16 leading-snug">
+                                                    {nota.internal_note}
+                                                </p>
+
+                                                <div className="text-[11px] text-zinc-400 mt-3 flex justify-between items-center border-t border-zinc-50 pt-2 font-medium">
+                                                    <span>Autor: <strong className="text-zinc-600">{nota.user?.name || 'Sistema'}</strong></span>
+                                                    <span>{new Date(nota.created_at).toLocaleString('es-ES')}</span>
+                                                </div>
+                                            </div>
+                                        ))
+                                    }
+                                </div>
+                            </div>
+                        )}
                     </div>
 
                     <div className="space-y-6">
                         <div className="bg-white border border-zinc-200 rounded-xl p-5 shadow-sm space-y-4">
-                            <h3 className="text-sm font-bold uppercase tracking-wider flex items-center gap-2">
+                            <h3 className="text-xs font-bold uppercase tracking-widest text-zinc-400 flex items-center gap-2">
                                 <User className="w-4 h-4 text-red-600" /> Solicitante
                             </h3>
                             <div className="space-y-2 text-sm">
@@ -138,7 +173,7 @@ export default function ShowAsignador({ ticket, departments, divisions, helpTopi
                         </div>
 
                         <div className="bg-white border border-zinc-200 rounded-xl p-5 shadow-sm space-y-4">
-                            <h3 className="text-sm font-bold uppercase tracking-wider flex items-center gap-2">
+                            <h3 className="text-xs font-bold uppercase tracking-widest text-zinc-400 flex items-center gap-2">
                                 <Briefcase className="w-4 h-4 text-red-600" /> Asignación Actual
                             </h3>
                             <div className="space-y-3 text-sm">
@@ -150,14 +185,13 @@ export default function ShowAsignador({ ticket, departments, divisions, helpTopi
                 </div>
             </div>
 
-            {/* ========================================== */}
-            {/* MODAL 1: REASIGNAR TICKET                  */}
-            {/* ========================================== */}
+            {/* MODAL 1: REASIGNAR TICKET */}
             <Dialog open={openReasignar} onOpenChange={setOpenReasignar}>
                 <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
                         <DialogTitle className="text-blue-600">Configurar Asignación</DialogTitle>
                     </DialogHeader>
+                    {/* ... (Contenido del modal de reasignación igual al origen) ... */}
                     <div className="space-y-6 py-4">
                         <div className="border border-zinc-200 rounded-xl p-4 space-y-4">
                             <div className="space-y-1">
@@ -211,27 +245,25 @@ export default function ShowAsignador({ ticket, departments, divisions, helpTopi
                 </DialogContent>
             </Dialog>
 
-            {/* ========================================== */}
-            {/* MODAL 2: CERRAR TICKET CON NOTA            */}
-            {/* ========================================== */}
+            {/* MODAL 2: CERRAR TICKET CON NOTA */}
             <Dialog open={openCerrar} onOpenChange={setOpenCerrar}>
                 <DialogContent>
                     <DialogHeader>
                         <DialogTitle className="text-red-600 flex items-center gap-2">
-                            <CheckCircle className="w-5 h-5" /> Cerrar Ticket
+                            <CheckCircle className="w-5 h-5" /> Cerrar Ticket Administrativamente
                         </DialogTitle>
                     </DialogHeader>
                     <form onSubmit={submitCerrar} className="space-y-4 py-4">
-                        <div className="bg-red-50 text-red-700 p-3 rounded-lg text-sm mb-4">
-                            Estás a punto de forzar el cierre de este ticket. Esto guardará un registro en el historial.
+                        <div className="bg-red-50 text-red-700 p-3 rounded-lg text-sm mb-4 border border-red-100">
+                            <strong>Atención:</strong> Vas a finalizar este ticket. Los detalles internos quedarán registrados en el historial para auditoría.
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="internal_note">Nota Interna / Justificación (Obligatorio)</Label>
+                            <Label htmlFor="internal_note">Justificación de Cierre (Nota Interna)</Label>
                             <Textarea
                                 id="internal_note"
                                 value={closeData.internal_note}
                                 onChange={(e) => setCloseData('internal_note', e.target.value)}
-                                placeholder="Explica detalladamente por qué se cierra este ticket de forma administrativa..."
+                                placeholder="Escribe el motivo por el cual se procede al cierre administrativo..."
                                 rows={5}
                                 required
                             />

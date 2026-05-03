@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class TicketHistory extends Model
 {
     use SoftDeletes;
-    
+
     protected $fillable = [
         'ticket_id',
         'user_id',

@@ -388,7 +388,7 @@ class TicketController extends Controller
             return redirect()->back()->with('error', 'Ocurrió un error al cerrar el ticket.');
         }
     }
-     public function showAsignador(Ticket $ticket)
+public function showAsignador(Ticket $ticket)
     {
         $user = auth()->user();
 
@@ -402,18 +402,28 @@ class TicketController extends Controller
             abort(403, 'Este ticket no pertenece a tu departamento.');
         }
 
-        // 3. Cargar las relaciones necesarias
-        $ticket->load(['department', 'helpTopic.division', 'priority', 'requestingUser', 'status', 'assignedUser']);
+        // 3. Cargar las relaciones necesarias (Una sola vez)
+        $ticket->load([
+            'department',
+            'helpTopic.division',
+            'priority',
+            'requestingUser',
+            'status',
+            'assignedUser',
+            'histories.user' // Esto incluye 'histories' automáticamente
+        ]);
 
-        // 4. Obtener técnicos del departamento
+        // 4. Obtener técnicos del departamento (Faltaba hacer el ->get())
         $tecnicosQuery = \App\Models\User::role('agent');
         if (!$user->hasRole('superadmin')) {
             $tecnicosQuery->where('department_id', $user->department_id);
         }
+        $tecnicos = $tecnicosQuery->get(['id', 'name']);
 
-        return Inertia::render('tickets/showAsignador', [
+        // 5. Renderizar la vista con TODAS las variables necesarias para el modal
+        return \Inertia\Inertia::render('tickets/showAsignador', [
             'ticket'      => $ticket,
-            'tecnicos'    => $tecnicosQuery->get(['id', 'name']),
+            'tecnicos'    => $tecnicos,
             'departments' => \App\Models\Department::all(['id', 'name']),
             'divisions'   => \App\Models\Division::all(['id', 'name', 'department_id']),
             'helpTopics'  => \App\Models\HelpTopic::all(['id', 'name_topic', 'division_id']),
