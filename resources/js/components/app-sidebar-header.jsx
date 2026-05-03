@@ -141,12 +141,15 @@ export function AppSidebarHeader({ breadcrumbs = [] }) {
                             );
                         }
 
+                        // Busca este bloque en tu archivo AppSidebarHeader.tsx y reemplázalo:
+
                         let isActive = false;
                         try {
                             const itemPath = new URL(item.url, item.url.startsWith('http') ? undefined : 'http://x').pathname;
-                            isActive = currentUrl.startsWith(itemPath);
+
+                            isActive = currentUrl === itemPath || currentUrl === item.url;
                         } catch (e) {
-                            isActive = currentUrl.startsWith(item.url);
+                            isActive = currentUrl === item.url;
                         }
                         return (
                             <Link

@@ -650,4 +650,43 @@ class TecnicoController extends Controller
             ], 500);
         }
     }
+
+    public function agregarNotaInterna(Request $request, Ticket $ticket)
+    {
+        // 1. Validar que el usuario sea el técnico asignado
+        if ($ticket->assigned_user !== auth()->id()) {
+            abort(403, 'Solo el técnico asignado puede agregar notas internas a este ticket.');
+        }
+
+        // 2. Validar el texto
+        $validated = $request->validate([
+            'internal_note' => 'required|string|max:1000',
+        ]);
+
+        \Illuminate\Support\Facades\DB::beginTransaction();
+        try {
+            // 3. Crear el registro en el historial
+            TicketHistory::create([
+                'ticket_id' => $ticket->id,
+                'user_id' => auth()->id(),
+                'action_type' => ActionTypeEnum::INTERNAL_NOTE ?? 'Nota Interna',
+                'internal_note' => $validated['internal_note'],
+                'previous_department' => $ticket->department_id,
+                'assigned_user' => $ticket->assigned_user,
+            ]);
+
+            // 4. (Opcional) Cambiar el estado a "Pendiente Revisión" para llamar la atención del jefe
+            $statusRevision = Status::where('name', 'Pendiente Revisión')->first();
+            if ($statusRevision && $ticket->status_id !== $statusRevision->id) {
+                $ticket->update(['status_id' => $statusRevision->id]);
+            }
+
+            \Illuminate\Support\Facades\DB::commit();
+
+            return redirect()->back()->with('success', 'Nota interna enviada al jefe de departamento.');
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\DB::rollBack();
+            return redirect()->back()->with('error', 'Error al guardar la nota interna.');
+        }
+    }
 }

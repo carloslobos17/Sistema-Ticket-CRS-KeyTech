@@ -29,6 +29,7 @@ class RoleSeeder extends Seeder
             'ver dashboard',
             'ver tickets',
             'view_own_tickets',
+            'view_all_tickets',
             'create_tickets'
         ];
 

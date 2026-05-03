@@ -30,7 +30,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/notifications/mark-all-read', [NotificationController::class, 'markAllAsRead'])->name('notifications.read-all');
     Route::get('/notifications/fetch', [NotificationController::class, 'fetch'])->name('notifications.fetch');
 
-    
+
 
     // NUEVO: RUTAS ESPECÍFICAS PARA TICKETS (antes del resource)
     // ==========================================
@@ -44,8 +44,11 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/tickets/pendientes', [TicketController::class, 'unassigned'])->name('tickets.unassigned');
     });
 
+    Route::put('/tickets/{ticket}/cancel', [TicketController::class, 'cancel'])->name('tickets.cancel');
+    Route::post('/tickets/{ticket}/close', [TicketController::class, 'close'])->name('tickets.close');
+    Route::post('/tickets/{ticket}/admin-close', [TicketController::class, 'adminClose'])->name('tickets.adminClose');
+    Route::get('/tickets/{ticket}/asignador', [TicketController::class, 'showAsignador'])->name('tickets.showAsignador');
 
-                                   
     // --- C. CRUD DE TICKETS con permisos granulares ---
     // MODIFICADO: Se añaden middlewares de permiso a cada método del resource
     // Para que no tengas que duplicar rutas, usamos ->middleware() en el resource
