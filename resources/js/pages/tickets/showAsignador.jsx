@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Head, Link, useForm } from "@inertiajs/react";
+import { Head, Link, useForm, usePage } from "@inertiajs/react"; // ← añadir usePage
 import AppLayout from '@/layouts/app-layout';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,7 +11,10 @@ import { ArrowLeft, User, Briefcase, Loader2, CheckCircle, RefreshCcw, MessageSq
 import { route } from 'ziggy-js';
 
 export default function ShowAsignador({ ticket, departments, divisions, helpTopics, slaPlans, priorities, tecnicos }) {
-    // 1. PROTECCIÓN DE RENDERIZADO
+    // ← NUEVO: leer el usuario autenticado
+    const { auth } = usePage().props;
+    const isSuperAdmin = auth?.user?.roles?.includes('superadmin');
+
     if (!ticket) {
         return (
             <AppLayout>
@@ -22,18 +25,13 @@ export default function ShowAsignador({ ticket, departments, divisions, helpTopi
         );
     }
 
-    // 2. ESTADOS PARA LOS MODALES
     const [openReasignar, setOpenReasignar] = useState(false);
     const [openCerrar, setOpenCerrar] = useState(false);
     const [openNota, setOpenNota] = useState(false);
 
-    // ==========================================
-    // 3. LÓGICA PARA REASIGNAR TICKET Y CAMBIAR DEPTO
-    // ==========================================
     const [dept, setDept] = useState(ticket?.department_id?.toString() ?? "");
     const [div, setDiv] = useState(ticket?.help_topic?.division_id?.toString() ?? "");
 
-    // Booleano clave: ¿El jefe seleccionó un departamento distinto al actual?
     const isDepartmentChanged = ticket ? parseInt(dept) !== parseInt(ticket.department_id) : false;
 
     const { data: assignData, setData: setAssignData, put: putAssign, processing: processingAssign, errors: assignErrors } = useForm({
@@ -55,9 +53,6 @@ export default function ShowAsignador({ ticket, departments, divisions, helpTopi
         });
     };
 
-    // ==========================================
-    // 4. LÓGICA PARA AGREGAR NOTA INTERNA
-    // ==========================================
     const { data: noteData, setData: setNoteData, post: postNote, processing: processingNote, errors: noteErrors, reset: resetNote } = useForm({
         internal_note: '',
     });
@@ -72,9 +67,6 @@ export default function ShowAsignador({ ticket, departments, divisions, helpTopi
         });
     };
 
-    // ==========================================
-    // 5. LÓGICA PARA CERRAR TICKET CON NOTA
-    // ==========================================
     const { data: closeData, setData: setCloseData, post: postClose, processing: processingClose, errors: closeErrors } = useForm({
         internal_note: '',
     });
@@ -86,7 +78,6 @@ export default function ShowAsignador({ ticket, departments, divisions, helpTopi
         });
     };
 
-    // 6. ESTILOS DE ESTADO
     const statusName = ticket.status?.name || "Sin estado";
     const statusStyles = {
         "Pendiente a asignación": "bg-yellow-100 text-yellow-700",
@@ -97,16 +88,21 @@ export default function ShowAsignador({ ticket, departments, divisions, helpTopi
     };
     const styleClass = statusStyles[statusName] || "bg-gray-100 text-gray-700";
 
+    // ← NUEVO: la ruta de regreso depende del rol
+    const backRoute = isSuperAdmin
+        ? route('tickets.index')
+        : route('tickets.unassigned');
+
     return (
         <AppLayout>
             <Head title={`Gestión de Ticket ${ticket.code}`} />
 
             <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-6">
-                {/* CABECERA Y BOTONES PRINCIPALES */}
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-zinc-200 shadow-sm">
                     <div className="flex items-center gap-4">
+                        {/* ← ÚNICO CAMBIO: href dinámico según rol */}
                         <Button variant="outline" size="icon" className="rounded-full" asChild>
-                            <Link href={route('tickets.unassigned')}>
+                            <Link href={backRoute}>
                                 <ArrowLeft className="h-4 w-4" />
                             </Link>
                         </Button>
@@ -134,10 +130,9 @@ export default function ShowAsignador({ ticket, departments, divisions, helpTopi
                             </Button>
                         )}
 
-                        {/* AQUÍ ESTÁ EL CAMBIO: Ocultamos si está Resuelto o Cerrado */}
                         {statusName !== 'Resuelto' && statusName !== 'Cerrado' && (
                             <Button
-                                className="bg-blue-600 hover:bg-blue-700 w-full sm:w-auto text-white font-bold"
+                                className="bg-gray-500 hover:bg-gray-700 w-full sm:w-auto text-white font-bold"
                                 onClick={() => setOpenReasignar(true)}
                             >
                                 <RefreshCcw className="w-4 h-4 mr-2" />
@@ -159,7 +154,6 @@ export default function ShowAsignador({ ticket, departments, divisions, helpTopi
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    {/* COLUMNA IZQUIERDA: MENSAJE Y BITÁCORA */}
                     <div className="lg:col-span-2 space-y-6">
                         <div className="bg-white border border-zinc-200 rounded-xl p-6 shadow-sm">
                             <h2 className="text-lg font-semibold mb-4 text-zinc-900 border-b pb-2">
@@ -170,14 +164,12 @@ export default function ShowAsignador({ ticket, departments, divisions, helpTopi
                             </div>
                         </div>
 
-                        {/* BITÁCORA DE NOTAS INTERNAS */}
                         {ticket.histories && ticket.histories.filter(h => h.internal_note || h.internalNote).length > 0 && (
                             <div className="bg-yellow-50/50 border border-yellow-200 rounded-2xl p-6 shadow-sm">
                                 <h3 className="text-sm font-bold text-yellow-800 uppercase mb-4 flex items-center gap-2 tracking-wider">
                                     <MessageSquare className="w-4 h-4" />
                                     Comunicación y Notas Internas
                                 </h3>
-
                                 <div className="space-y-4">
                                     {ticket.histories
                                         .filter(h => h.internal_note || h.internalNote)
@@ -188,17 +180,15 @@ export default function ShowAsignador({ ticket, departments, divisions, helpTopi
                                                     <div className="absolute top-4 right-4 text-[10px] font-black px-2 py-0.5 bg-zinc-100 rounded text-zinc-400 uppercase">
                                                         {nota.user?.roles?.[0]?.name || nota.user?.roles?.[0] || 'Staff'}
                                                     </div>
-
                                                     <p className="text-sm text-zinc-700 whitespace-pre-wrap pr-16 leading-snug">
                                                         {notaTexto}
                                                     </p>
-
                                                     <div className="text-[11px] text-zinc-400 mt-3 flex justify-between items-center border-t border-zinc-50 pt-2 font-medium">
                                                         <span>Autor: <strong className="text-zinc-600">{nota.user?.name || 'Sistema'}</strong></span>
                                                         <span>{new Date(nota.created_at).toLocaleString('es-ES')}</span>
                                                     </div>
                                                 </div>
-                                            )
+                                            );
                                         })
                                     }
                                 </div>
@@ -206,7 +196,6 @@ export default function ShowAsignador({ ticket, departments, divisions, helpTopi
                         )}
                     </div>
 
-                    {/* COLUMNA DERECHA: DATOS DEL TICKET */}
                     <div className="space-y-6">
                         <div className="bg-white border border-zinc-200 rounded-xl p-5 shadow-sm space-y-4">
                             <h3 className="text-xs font-bold uppercase tracking-widest text-zinc-400 flex items-center gap-2">
@@ -233,30 +222,19 @@ export default function ShowAsignador({ ticket, departments, divisions, helpTopi
                 </div>
             </div>
 
-            {/* ========================================== */}
-            {/* MODAL 1: MODIFICAR / REASIGNAR TICKET        */}
-            {/* ========================================== */}
+            {/* MODAL 1: MODIFICAR / REASIGNAR */}
             <Dialog open={openReasignar} onOpenChange={setOpenReasignar}>
                 <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
                         <DialogTitle className="text-blue-600">Modificar Asignación y Departamento</DialogTitle>
                     </DialogHeader>
                     <div className="space-y-6 py-4">
-
-                        {/* SECCIÓN ÁREA DE ATENCIÓN */}
                         <div className="border border-zinc-200 rounded-xl p-4 space-y-4 bg-zinc-50">
                             <h4 className="text-xs font-bold text-zinc-500 uppercase">Área de Atención</h4>
                             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                                 <div className="space-y-1">
                                     <Label>Departamento</Label>
-                                    <Select
-                                        value={dept}
-                                        onValueChange={(val) => {
-                                            setDept(val);
-                                            setDiv("");
-                                            setAssignData(prev => ({...prev, department_id: val, division_id: "", help_topic_id: ""}));
-                                        }}
-                                    >
+                                    <Select value={dept} onValueChange={(val) => { setDept(val); setDiv(""); setAssignData(prev => ({...prev, department_id: val, division_id: "", help_topic_id: ""})); }}>
                                         <SelectTrigger><SelectValue placeholder="Seleccione..." /></SelectTrigger>
                                         <SelectContent>
                                             {departments?.map(d => <SelectItem key={d.id} value={d.id.toString()}>{d.name}</SelectItem>)}
@@ -265,14 +243,7 @@ export default function ShowAsignador({ ticket, departments, divisions, helpTopi
                                 </div>
                                 <div className="space-y-1">
                                     <Label>División</Label>
-                                    <Select
-                                        value={div}
-                                        onValueChange={(val) => {
-                                            setDiv(val);
-                                            setAssignData(prev => ({...prev, division_id: val, help_topic_id: ""}));
-                                        }}
-                                        disabled={!dept}
-                                    >
+                                    <Select value={div} onValueChange={(val) => { setDiv(val); setAssignData(prev => ({...prev, division_id: val, help_topic_id: ""})); }} disabled={!dept}>
                                         <SelectTrigger><SelectValue placeholder="Seleccione..." /></SelectTrigger>
                                         <SelectContent>
                                             {filteredDivisions?.map(d => <SelectItem key={d.id} value={d.id.toString()}>{d.name}</SelectItem>)}
@@ -281,11 +252,7 @@ export default function ShowAsignador({ ticket, departments, divisions, helpTopi
                                 </div>
                                 <div className="space-y-1">
                                     <Label>Tema de Ayuda</Label>
-                                    <Select
-                                        value={assignData.help_topic_id}
-                                        onValueChange={val => setAssignData("help_topic_id", val)}
-                                        disabled={!div}
-                                    >
+                                    <Select value={assignData.help_topic_id} onValueChange={val => setAssignData("help_topic_id", val)} disabled={!div}>
                                         <SelectTrigger><SelectValue placeholder="Seleccione..." /></SelectTrigger>
                                         <SelectContent>
                                             {filteredTopics?.map(t => <SelectItem key={t.id} value={t.id.toString()}>{t.name_topic}</SelectItem>)}
@@ -295,46 +262,31 @@ export default function ShowAsignador({ ticket, departments, divisions, helpTopi
                             </div>
                         </div>
 
-                        {/* SECCIÓN TÉCNICA */}
                         <div className="border border-zinc-200 rounded-xl p-4 space-y-4">
                             <div className="flex justify-between items-center">
                                 <h4 className="text-xs font-bold text-zinc-500 uppercase">Detalles de Servicio</h4>
                                 {isDepartmentChanged && (
-                                    <span className="text-[10px] bg-yellow-100 text-yellow-700 px-2 py-1 rounded font-bold uppercase">
-                                        Solo Transferencia
-                                    </span>
+                                    <span className="text-[10px] bg-yellow-100 text-yellow-700 px-2 py-1 rounded font-bold uppercase">Solo Transferencia</span>
                                 )}
                             </div>
-
-                            {/* MENSAJE DE ADVERTENCIA SI CAMBIA DE DEPARTAMENTO */}
                             {isDepartmentChanged && (
                                 <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 text-xs p-3 rounded-lg leading-relaxed">
-                                    <strong>Nota:</strong> Como estás transfiriendo el ticket a otro departamento, los detalles de servicio han sido bloqueados. El ticket volverá a estado "Pendiente a asignación" en su nueva área.
+                                    <strong>Nota:</strong> El ticket volverá a estado "Pendiente a asignación" en su nueva área.
                                 </div>
                             )}
-
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div className="space-y-1">
                                     <Label>Prioridad</Label>
-                                    <Select
-                                        value={assignData.priority_id}
-                                        onValueChange={val => setAssignData("priority_id", val)}
-                                        disabled={isDepartmentChanged}
-                                    >
+                                    <Select value={assignData.priority_id} onValueChange={val => setAssignData("priority_id", val)} disabled={isDepartmentChanged}>
                                         <SelectTrigger><SelectValue placeholder="Seleccione..." /></SelectTrigger>
                                         <SelectContent>
                                             {priorities?.map(p => <SelectItem key={p.id} value={p.id.toString()}>{p.name}</SelectItem>)}
                                         </SelectContent>
                                     </Select>
                                 </div>
-
                                 <div className="space-y-1">
                                     <Label>Plan SLA</Label>
-                                    <Select
-                                        value={assignData.sla_plan_id}
-                                        onValueChange={val => setAssignData("sla_plan_id", val)}
-                                        disabled={isDepartmentChanged}
-                                    >
+                                    <Select value={assignData.sla_plan_id} onValueChange={val => setAssignData("sla_plan_id", val)} disabled={isDepartmentChanged}>
                                         <SelectTrigger><SelectValue placeholder="Seleccione..." /></SelectTrigger>
                                         <SelectContent>
                                             {slaPlans?.map(s => <SelectItem key={s.id} value={s.id.toString()}>{s.name}</SelectItem>)}
@@ -342,20 +294,13 @@ export default function ShowAsignador({ ticket, departments, divisions, helpTopi
                                     </Select>
                                 </div>
                             </div>
-
                             <div className="space-y-1 pt-2">
                                 <Label>Técnico asignado (Opcional)</Label>
-                                <Select
-                                    value={assignData.assigned_user || "none"}
-                                    onValueChange={val => setAssignData("assigned_user", val === "none" ? "" : val)}
-                                    disabled={isDepartmentChanged}
-                                >
+                                <Select value={assignData.assigned_user || "none"} onValueChange={val => setAssignData("assigned_user", val === "none" ? "" : val)} disabled={isDepartmentChanged}>
                                     <SelectTrigger><SelectValue placeholder="Seleccione un técnico..." /></SelectTrigger>
                                     <SelectContent>
                                         <SelectItem value="none">Dejar sin asignar</SelectItem>
-                                        {tecnicos?.map(t => (
-                                            <SelectItem key={t.id} value={t.id.toString()}>{t.name}</SelectItem>
-                                        ))}
+                                        {tecnicos?.map(t => <SelectItem key={t.id} value={t.id.toString()}>{t.name}</SelectItem>)}
                                     </SelectContent>
                                 </Select>
                             </div>
@@ -370,9 +315,7 @@ export default function ShowAsignador({ ticket, departments, divisions, helpTopi
                 </DialogContent>
             </Dialog>
 
-            {/* ========================================== */}
-            {/* MODAL 2: AGREGAR NOTA INTERNA                */}
-            {/* ========================================== */}
+            {/* MODAL 2: NOTA INTERNA */}
             <Dialog open={openNota} onOpenChange={setOpenNota}>
                 <DialogContent>
                     <DialogHeader>
@@ -382,21 +325,13 @@ export default function ShowAsignador({ ticket, departments, divisions, helpTopi
                     </DialogHeader>
                     <form onSubmit={submitNota} className="space-y-4 py-4">
                         <div className="space-y-2">
-                            <Label htmlFor="internal_note">Escribe tu comentario o actualización (Visible solo para staff)</Label>
-                            <Textarea
-                                id="internal_note"
-                                value={noteData.internal_note}
-                                onChange={(e) => setNoteData('internal_note', e.target.value)}
-                                placeholder="El cliente llamó e indicó que el equipo fue movido a otra sala..."
-                                rows={4}
-                                required
-                            />
+                            <Label htmlFor="internal_note">Escribe tu comentario (Visible solo para staff)</Label>
+                            <Textarea id="internal_note" value={noteData.internal_note} onChange={(e) => setNoteData('internal_note', e.target.value)}
+                                placeholder="El cliente llamó e indicó que el equipo fue movido a otra sala..." rows={4} required />
                             {noteErrors.internal_note && <p className="text-sm text-red-500">{noteErrors.internal_note}</p>}
                         </div>
                         <DialogFooter>
-                            <Button type="button" variant="ghost" onClick={() => { setOpenNota(false); resetNote(); }}>
-                                Cancelar
-                            </Button>
+                            <Button type="button" variant="ghost" onClick={() => { setOpenNota(false); resetNote(); }}>Cancelar</Button>
                             <Button type="submit" disabled={processingNote} className="bg-yellow-500 hover:bg-yellow-600 text-white font-bold">
                                 {processingNote ? <Loader2 className="h-4 w-4 animate-spin" /> : "Guardar Nota"}
                             </Button>
@@ -405,9 +340,7 @@ export default function ShowAsignador({ ticket, departments, divisions, helpTopi
                 </DialogContent>
             </Dialog>
 
-            {/* ========================================== */}
-            {/* MODAL 3: CERRAR TICKET ADMINISTRATIVAMENTE   */}
-            {/* ========================================== */}
+            {/* MODAL 3: CERRAR TICKET */}
             <Dialog open={openCerrar} onOpenChange={setOpenCerrar}>
                 <DialogContent>
                     <DialogHeader>
@@ -421,20 +354,12 @@ export default function ShowAsignador({ ticket, departments, divisions, helpTopi
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="close_note">Justificación de Cierre (Nota Interna)</Label>
-                            <Textarea
-                                id="close_note"
-                                value={closeData.internal_note}
-                                onChange={(e) => setCloseData('internal_note', e.target.value)}
-                                placeholder="Escribe el motivo por el cual se procede al cierre administrativo..."
-                                rows={5}
-                                required
-                            />
+                            <Textarea id="close_note" value={closeData.internal_note} onChange={(e) => setCloseData('internal_note', e.target.value)}
+                                placeholder="Escribe el motivo por el cual se procede al cierre administrativo..." rows={5} required />
                             {closeErrors.internal_note && <p className="text-sm text-red-500">{closeErrors.internal_note}</p>}
                         </div>
                         <DialogFooter>
-                            <Button type="button" variant="ghost" onClick={() => setOpenCerrar(false)}>
-                                Cancelar
-                            </Button>
+                            <Button type="button" variant="ghost" onClick={() => setOpenCerrar(false)}>Cancelar</Button>
                             <Button type="submit" disabled={processingClose} className="bg-red-600 hover:bg-red-700 text-white">
                                 {processingClose ? <Loader2 className="h-4 w-4 animate-spin" /> : "Confirmar Cierre"}
                             </Button>
@@ -442,7 +367,6 @@ export default function ShowAsignador({ ticket, departments, divisions, helpTopi
                     </form>
                 </DialogContent>
             </Dialog>
-
         </AppLayout>
     );
 }

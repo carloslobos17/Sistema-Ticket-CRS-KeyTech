@@ -72,7 +72,7 @@ export default function Unassigned({ tickets }) {
                                                 {/* ÚNICO BOTÓN: Nos lleva directamente al ShowAsignador */}
                                                 <Button
                                                     size="sm"
-                                                    className="bg-blue-600 hover:bg-blue-700 font-bold"
+                                                    className="bg-red-600 hover:bg-red-700 font-bold"
                                                     asChild
                                                 >
                                                     <Link href={route('tickets.showAsignador', ticket.id)}>
