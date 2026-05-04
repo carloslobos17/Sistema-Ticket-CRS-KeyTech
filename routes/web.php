@@ -8,6 +8,9 @@ use Inertia\Inertia;
 use App\Http\Controllers\SlaPlanController;
 use App\Http\Controllers\PriorityController;
 use App\Http\Controllers\TecnicoController;
+// ❌ Quitar: use App\Http\Controllers\TicketController;
+// ❌ Quitar: use App\Http\Controllers\TicketHistoryController;
+// ✅ Los controladores de tickets se importan dentro de tickets.php
 
 // ==========================================
 // 1. RUTAS PÚBLICAS
@@ -31,6 +34,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/notifications/fetch', [NotificationController::class, 'fetch'])->name('notifications.fetch');
 
     // --- C. TICKETS (archivo separado) ---
+    // ✅ Hereda el middleware 'auth' automáticamente por estar dentro del grupo
     require base_path('routes/tickets.php');
 
     // --- D. SLA PLANS ---

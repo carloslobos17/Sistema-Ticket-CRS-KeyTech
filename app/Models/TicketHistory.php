@@ -5,11 +5,10 @@ namespace App\Models;
 use App\Enums\ActionTypeEnum;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\SoftDeletes;
 
 class TicketHistory extends Model
 {
-    use SoftDeletes;
+
 
     protected $fillable = [
         'ticket_id',
@@ -64,6 +63,6 @@ class TicketHistory extends Model
     public function newDepartment():BelongsTo
     {
         // Recuerda cambiar 'new_apartment' si lo corriges en la BD
-        return $this->belongsTo(Department::class, 'new_apartment');
+        return $this->belongsTo(Department::class, 'new_department');
     }
 }

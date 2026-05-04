@@ -95,6 +95,7 @@ class HandleInertiaRequests extends Middleware
                 ];
             }
 
+
             // ==========================================
             // 5. USUARIOS (permiso específico)
             // ==========================================
