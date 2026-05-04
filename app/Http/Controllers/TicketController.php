@@ -34,8 +34,8 @@ class TicketController extends Controller
         }
 
         $tickets = Ticket::with(['department', 'assignedUser', 'status'])
-                        ->orderBy('created_at', 'desc')
-                        ->get();
+            ->orderBy('created_at', 'desc')
+            ->get();
 
         return Inertia::render('tickets/index', [
             'tickets' => $tickets,
@@ -83,8 +83,6 @@ class TicketController extends Controller
 
 
         $helpTopic = HelpTopic::with(['priority', 'slaPlan'])->findOrFail($validated['help_topic_id']);
-        $priority = $helpTopic->priority;
-        $slaPlan = $helpTopic->slaPlan;
 
 
         $statusOpen = Status::where('name', 'Pendiente a asignación')->firstOrFail();
@@ -94,7 +92,6 @@ class TicketController extends Controller
 
 
         $creationDate = Carbon::now();
-        $expirationDate = $slaPlan ? $creationDate->copy()->addHours($slaPlan->grace_time_hours) : null;
 
 
         $ticket = Ticket::create([
@@ -104,13 +101,13 @@ class TicketController extends Controller
             'subject'         => $validated['subject'],
             'message'         => $validated['message'],
             'attach'          => null,
-            'expiration_date' => $expirationDate,
+            'expiration_date' => null,
             'closing_date'    => null,
             'requesting_user' => Auth::id(),
             'assigned_user'   => null,
             'help_topic_id'   => $helpTopic->id,
-            'priority_id'     => $priority->id ?? null,
-            'sla_plan_id'     => $slaPlan->id ?? null,
+            'priority_id'     => null,
+            'sla_plan_id'     => null,
             'department_id'   => $validated['department_id'],
             'status_id'       => $statusOpen->id,
         ]);
@@ -140,7 +137,7 @@ class TicketController extends Controller
         }
 
         return redirect()->route('tickets.my')
-                        ->with('success', 'Ticket creado correctamente. El jefe del departamento lo asignará.');
+            ->with('success', 'Ticket creado correctamente. El jefe del departamento lo asignará.');
     }
     /**
      * Display the specified ticket (requires view_all_tickets permission).
@@ -168,9 +165,9 @@ class TicketController extends Controller
         }
 
         $tickets = Ticket::with(['department', 'assignedUser', 'status'])
-                        ->where('requesting_user', auth()->id())
-                        ->orderBy('created_at', 'desc')
-                        ->get();
+            ->where('requesting_user', auth()->id())
+            ->orderBy('created_at', 'desc')
+            ->get();
 
         return Inertia::render('tickets/index', [
             'tickets' => $tickets,
@@ -191,14 +188,14 @@ class TicketController extends Controller
 
         // If admin has no department, maybe show nothing? Or for superadmin all.
         if ($user->hasRole('superadmin')) {
-            $tickets = Ticket::with(['department', 'priority', 'requestingUser', 'status'])
+            $tickets = Ticket::with(['department', 'helpTopic.division', 'priority', 'requestingUser', 'status'])
                 ->whereNull('assigned_user')
                 ->orderBy('creation_date', 'asc')
                 ->get();
             $tecnicos = User::role('agent')->get(['id', 'name']);
         } else {
             // Only tickets from admin's department
-            $tickets = Ticket::with(['department', 'priority', 'requestingUser', 'status'])
+            $tickets = Ticket::with(['department', 'helpTopic.division', 'priority', 'requestingUser', 'status'])
                 ->whereNull('assigned_user')
                 ->where('department_id', $departmentId)
                 ->orderBy('creation_date', 'asc')
@@ -211,51 +208,43 @@ class TicketController extends Controller
 
         return Inertia::render('tickets/unassigned', [
             'tickets' => $tickets,
-            'tecnicos' => $tecnicos
+            'tecnicos' => $tecnicos,
+            'departments' => Department::all(['id', 'name']),
+            'divisions' => Division::all(['id', 'name', 'department_id']),
+            'helpTopics'  => HelpTopic::all(['id', 'name_topic', 'division_id']),
+            'slaPlans'    => SlaPlan::all(['id', 'name']),
+            'priorities'  => Priority::all(['id', 'name']),
         ]);
     }
-    /**
-     * Assign a technician to a ticket (requires assign_tickets permission).
-     */
 
-    public function assign(Request $request, Ticket $ticket)
+    public function update(Request $request, Ticket $ticket)
     {
-        if (!auth()->user()->can('assign_tickets')) {
-            abort(403, 'No tienes permiso para asignar tickets.');
+
+        $validated = $request->validate(
+            [
+                'department_id'  => 'required|exists:departments,id',
+                'help_topic_id'  => 'required|exists:help_topics,id',
+                'sla_plan_id'    => 'required|exists:sla_plans,id',
+                'priority_id'    => 'required|exists:priorities,id',
+                'assigned_user'  => 'required|exists:users,id',
+            ],
+            [
+                'sla_plan_id.required'    => 'El plan SLA es obligatorio.',
+                'priority_id.required'    => 'La prioridad es obligatoria.',
+                'assigned_user.required'  => 'El técnico asignado es obligatorio.'
+            ]
+        );
+
+        $validated['status_id'] = Status::where('name', 'Asignado')->firstOrFail()->id;
+
+        if (!empty($validated['sla_plan_id'])) {
+            $slaPlan = SlaPlan::findOrFail($validated['sla_plan_id']);
+            $validated['expiration_date'] = Carbon::parse($ticket->creation_date)
+                ->addHours($slaPlan->grace_time_hours);
         }
 
-        $request->validate([
-            'tecnico_id' => 'required|exists:users,id'
-        ]);
+        $ticket->update($validated);
 
-        $tecnico = User::find($request->tecnico_id);
-
-        // Verificar que el técnico pertenezca al mismo departamento que el ticket
-        if ($tecnico->department_id !== $ticket->department_id) {
-            return back()->with('error', 'El técnico debe pertenecer al departamento del ticket.');
-        }
-
-        // Verificar que el ticket no esté ya asignado
-        if ($ticket->assigned_user) {
-            return back()->with('error', 'Este ticket ya está asignado a un técnico.');
-        }
-
-        $ticket->assigned_user = $tecnico->id;
-
-        $statusInProgress = Status::where('name', 'En Proceso')->first();
-        if ($statusInProgress) {
-            $ticket->status_id = $statusInProgress->id;
-        }
-
-        $ticket->save();
-
-        // Notificar al técnico
-        $tecnico->notify(new TicketAssignedNotification($ticket));
-
-        // Redirigir a la lista de pendientes (página de donde vino) con mensaje
-        return redirect()->route('tickets.unassigned')->with('success', "Ticket {$ticket->code} asignado a {$tecnico->name} correctamente.");
+        return redirect()->back()->with('success', 'Ticket actualizado correctamente');
     }
-
-
-
 }

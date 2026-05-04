@@ -33,8 +33,6 @@ Route::middleware(['auth'])->group(function () {
 
     
 
-    Route::post('/tickets/{ticket}/asignar', [TicketController::class, 'assign'])->name('tickets.assign');
-    // ==========================================
     // NUEVO: RUTAS ESPECÍFICAS PARA TICKETS (antes del resource)
     // ==========================================
 
@@ -45,11 +43,10 @@ Route::middleware(['auth'])->group(function () {
     // Tickets pendientes de asignación (ya existía)
     Route::middleware(['permission:assign_tickets'])->group(function () {
         Route::get('/tickets/pendientes', [TicketController::class, 'unassigned'])->name('tickets.unassigned');
-        Route::post('/tickets/{ticket}/asignar', [TicketController::class, 'assign'])->name('tickets.assign');
     });
 
 
-
+                                   
     // --- C. CRUD DE TICKETS con permisos granulares ---
     // MODIFICADO: Se añaden middlewares de permiso a cada método del resource
     // Para que no tengas que duplicar rutas, usamos ->middleware() en el resource
