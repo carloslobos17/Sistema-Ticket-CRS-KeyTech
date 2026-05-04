@@ -7,33 +7,47 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-// Añadimos MessageSquare a los iconos
-import { ArrowLeft, User, Clock, Tag, Briefcase, FileText, Loader2, CheckCircle, RefreshCcw, MessageSquare } from 'lucide-react';
+import { ArrowLeft, User, Briefcase, Loader2, CheckCircle, RefreshCcw, MessageSquare, StickyNote } from 'lucide-react';
 import { route } from 'ziggy-js';
 
 export default function ShowAsignador({ ticket, departments, divisions, helpTopics, slaPlans, priorities, tecnicos }) {
-    // ESTADOS PARA LOS MODALES
+    // 1. PROTECCIÓN DE RENDERIZADO
+    if (!ticket) {
+        return (
+            <AppLayout>
+                <div className="p-8 text-center text-zinc-500 font-bold mt-10">
+                    Cargando información del ticket...
+                </div>
+            </AppLayout>
+        );
+    }
+
+    // 2. ESTADOS PARA LOS MODALES
     const [openReasignar, setOpenReasignar] = useState(false);
     const [openCerrar, setOpenCerrar] = useState(false);
+    const [openNota, setOpenNota] = useState(false);
 
     // ==========================================
-    // LÓGICA PARA REASIGNAR TICKET
+    // 3. LÓGICA PARA REASIGNAR TICKET Y CAMBIAR DEPTO
     // ==========================================
-    const [dept, setDept] = useState(ticket.department_id?.toString() ?? "");
-    const [div, setDiv] = useState(ticket.help_topic?.division_id?.toString() ?? "");
+    const [dept, setDept] = useState(ticket?.department_id?.toString() ?? "");
+    const [div, setDiv] = useState(ticket?.help_topic?.division_id?.toString() ?? "");
+
+    // Booleano clave: ¿El jefe seleccionó un departamento distinto al actual?
+    const isDepartmentChanged = ticket ? parseInt(dept) !== parseInt(ticket.department_id) : false;
 
     const { data: assignData, setData: setAssignData, put: putAssign, processing: processingAssign, errors: assignErrors } = useForm({
-        id: ticket.id,
-        department_id: ticket.department_id?.toString() ?? "",
-        division_id: ticket.help_topic?.division_id?.toString() ?? "",
-        help_topic_id: ticket.help_topic_id?.toString() ?? "",
-        sla_plan_id: ticket.sla_plan_id?.toString() ?? "",
-        priority_id: ticket.priority_id?.toString() ?? "",
-        assigned_user: ticket.assigned_user?.toString() ?? "",
+        id: ticket?.id ?? "",
+        department_id: ticket?.department_id?.toString() ?? "",
+        division_id: ticket?.help_topic?.division_id?.toString() ?? "",
+        help_topic_id: ticket?.help_topic_id?.toString() ?? "",
+        sla_plan_id: ticket?.sla_plan_id?.toString() ?? "",
+        priority_id: ticket?.priority_id?.toString() ?? "",
+        assigned_user: ticket?.assigned_user?.toString() ?? "",
     });
 
-    const filteredDivisions = dept ? divisions.filter((d) => parseInt(d.department_id) === parseInt(dept)) : divisions;
-    const filteredTopics = div ? helpTopics.filter((t) => parseInt(t.division_id) === parseInt(div)) : helpTopics;
+    const filteredDivisions = dept ? divisions?.filter((d) => parseInt(d.department_id) === parseInt(dept)) : divisions;
+    const filteredTopics = div ? helpTopics?.filter((t) => parseInt(t.division_id) === parseInt(div)) : helpTopics;
 
     const submitReasignar = () => {
         putAssign(route("tickets.update", { ticket: ticket.id }), {
@@ -42,7 +56,24 @@ export default function ShowAsignador({ ticket, departments, divisions, helpTopi
     };
 
     // ==========================================
-    // LÓGICA PARA CERRAR TICKET CON NOTA
+    // 4. LÓGICA PARA AGREGAR NOTA INTERNA
+    // ==========================================
+    const { data: noteData, setData: setNoteData, post: postNote, processing: processingNote, errors: noteErrors, reset: resetNote } = useForm({
+        internal_note: '',
+    });
+
+    const submitNota = (e) => {
+        e.preventDefault();
+        postNote(route('tickets.notaInterna', ticket.id), {
+            onSuccess: () => {
+                setOpenNota(false);
+                resetNote();
+            },
+        });
+    };
+
+    // ==========================================
+    // 5. LÓGICA PARA CERRAR TICKET CON NOTA
     // ==========================================
     const { data: closeData, setData: setCloseData, post: postClose, processing: processingClose, errors: closeErrors } = useForm({
         internal_note: '',
@@ -55,7 +86,7 @@ export default function ShowAsignador({ ticket, departments, divisions, helpTopi
         });
     };
 
-    // Estilos de estado
+    // 6. ESTILOS DE ESTADO
     const statusName = ticket.status?.name || "Sin estado";
     const statusStyles = {
         "Pendiente a asignación": "bg-yellow-100 text-yellow-700",
@@ -71,7 +102,7 @@ export default function ShowAsignador({ ticket, departments, divisions, helpTopi
             <Head title={`Gestión de Ticket ${ticket.code}`} />
 
             <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-6">
-                {/* CABECERA */}
+                {/* CABECERA Y BOTONES PRINCIPALES */}
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-zinc-200 shadow-sm">
                     <div className="flex items-center gap-4">
                         <Button variant="outline" size="icon" className="rounded-full" asChild>
@@ -91,14 +122,28 @@ export default function ShowAsignador({ ticket, departments, divisions, helpTopi
                         </div>
                     </div>
 
-                    <div className="flex gap-3 w-full sm:w-auto">
-                        <Button
-                            className="bg-blue-600 hover:bg-blue-700 w-full sm:w-auto text-white font-bold"
-                            onClick={() => setOpenReasignar(true)}
-                        >
-                            <RefreshCcw className="w-4 h-4 mr-2" />
-                            {ticket.assigned_user ? "Reasignar Técnico" : "Asignar Técnico"}
-                        </Button>
+                    <div className="flex flex-wrap gap-3 w-full sm:w-auto">
+                        {statusName !== 'Cerrado' && (
+                            <Button
+                                variant="outline"
+                                className="bg-yellow-50 hover:bg-yellow-100 text-yellow-700 border-yellow-200 w-full sm:w-auto font-bold"
+                                onClick={() => setOpenNota(true)}
+                            >
+                                <StickyNote className="w-4 h-4 mr-2" />
+                                Agregar Nota
+                            </Button>
+                        )}
+
+                        {/* AQUÍ ESTÁ EL CAMBIO: Ocultamos si está Resuelto o Cerrado */}
+                        {statusName !== 'Resuelto' && statusName !== 'Cerrado' && (
+                            <Button
+                                className="bg-blue-600 hover:bg-blue-700 w-full sm:w-auto text-white font-bold"
+                                onClick={() => setOpenReasignar(true)}
+                            >
+                                <RefreshCcw className="w-4 h-4 mr-2" />
+                                Modificar / Reasignar
+                            </Button>
+                        )}
 
                         {statusName !== 'Cerrado' && (
                             <Button
@@ -114,8 +159,8 @@ export default function ShowAsignador({ ticket, departments, divisions, helpTopi
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    {/* COLUMNA IZQUIERDA: MENSAJE Y BITÁCORA */}
                     <div className="lg:col-span-2 space-y-6">
-                        {/* Descripción del Problema */}
                         <div className="bg-white border border-zinc-200 rounded-xl p-6 shadow-sm">
                             <h2 className="text-lg font-semibold mb-4 text-zinc-900 border-b pb-2">
                                 {ticket.subject}
@@ -125,42 +170,43 @@ export default function ShowAsignador({ ticket, departments, divisions, helpTopi
                             </div>
                         </div>
 
-                        {/* ========================================== */}
-                        {/* BITÁCORA DE NOTAS INTERNAS (DEL TÉCNICO)   */}
-                        {/* ========================================== */}
-                        {ticket.histories && ticket.histories.filter(h => h.internal_note).length > 0 && (
+                        {/* BITÁCORA DE NOTAS INTERNAS */}
+                        {ticket.histories && ticket.histories.filter(h => h.internal_note || h.internalNote).length > 0 && (
                             <div className="bg-yellow-50/50 border border-yellow-200 rounded-2xl p-6 shadow-sm">
                                 <h3 className="text-sm font-bold text-yellow-800 uppercase mb-4 flex items-center gap-2 tracking-wider">
                                     <MessageSquare className="w-4 h-4" />
-                                    Comunicación Interna Técnica
+                                    Comunicación y Notas Internas
                                 </h3>
 
                                 <div className="space-y-4">
                                     {ticket.histories
-                                        .filter(h => h.internal_note)
-                                        .map((nota, index) => (
-                                            <div key={index} className="bg-white p-4 rounded-xl border border-yellow-100 shadow-sm relative">
-                                                {/* Etiqueta del Rol */}
-                                                <div className="absolute top-4 right-4 text-[10px] font-black px-2 py-0.5 bg-zinc-100 rounded text-zinc-400 uppercase">
-                                                    {nota.user?.roles?.[0] || 'Staff'}
-                                                </div>
+                                        .filter(h => h.internal_note || h.internalNote)
+                                        .map((nota, index) => {
+                                            const notaTexto = nota.internal_note || nota.internalNote;
+                                            return (
+                                                <div key={index} className="bg-white p-4 rounded-xl border border-yellow-100 shadow-sm relative">
+                                                    <div className="absolute top-4 right-4 text-[10px] font-black px-2 py-0.5 bg-zinc-100 rounded text-zinc-400 uppercase">
+                                                        {nota.user?.roles?.[0]?.name || nota.user?.roles?.[0] || 'Staff'}
+                                                    </div>
 
-                                                <p className="text-sm text-zinc-700 whitespace-pre-wrap pr-16 leading-snug">
-                                                    {nota.internal_note}
-                                                </p>
+                                                    <p className="text-sm text-zinc-700 whitespace-pre-wrap pr-16 leading-snug">
+                                                        {notaTexto}
+                                                    </p>
 
-                                                <div className="text-[11px] text-zinc-400 mt-3 flex justify-between items-center border-t border-zinc-50 pt-2 font-medium">
-                                                    <span>Autor: <strong className="text-zinc-600">{nota.user?.name || 'Sistema'}</strong></span>
-                                                    <span>{new Date(nota.created_at).toLocaleString('es-ES')}</span>
+                                                    <div className="text-[11px] text-zinc-400 mt-3 flex justify-between items-center border-t border-zinc-50 pt-2 font-medium">
+                                                        <span>Autor: <strong className="text-zinc-600">{nota.user?.name || 'Sistema'}</strong></span>
+                                                        <span>{new Date(nota.created_at).toLocaleString('es-ES')}</span>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        ))
+                                            )
+                                        })
                                     }
                                 </div>
                             </div>
                         )}
                     </div>
 
+                    {/* COLUMNA DERECHA: DATOS DEL TICKET */}
                     <div className="space-y-6">
                         <div className="bg-white border border-zinc-200 rounded-xl p-5 shadow-sm space-y-4">
                             <h3 className="text-xs font-bold uppercase tracking-widest text-zinc-400 flex items-center gap-2">
@@ -174,78 +220,194 @@ export default function ShowAsignador({ ticket, departments, divisions, helpTopi
 
                         <div className="bg-white border border-zinc-200 rounded-xl p-5 shadow-sm space-y-4">
                             <h3 className="text-xs font-bold uppercase tracking-widest text-zinc-400 flex items-center gap-2">
-                                <Briefcase className="w-4 h-4 text-red-600" /> Asignación Actual
+                                <Briefcase className="w-4 h-4 text-red-600" /> Datos de Asignación
                             </h3>
                             <div className="space-y-3 text-sm">
-                                <div><span className="text-zinc-500 block mb-1">Departamento:</span> {ticket.department?.name || 'N/A'}</div>
-                                <div><span className="text-zinc-500 block mb-1">Técnico:</span> {ticket.assigned_user?.name || 'Sin asignar'}</div>
+                                <div><span className="text-zinc-500 block mb-1">Departamento:</span> <span className="font-semibold text-zinc-800">{ticket.department?.name || 'N/A'}</span></div>
+                                <div><span className="text-zinc-500 block mb-1">Tema de Ayuda:</span> {ticket.help_topic?.name_topic || 'N/A'}</div>
+                                <div><span className="text-zinc-500 block mb-1">Prioridad:</span> {ticket.priority?.name || 'N/A'}</div>
+                                <div><span className="text-zinc-500 block mb-1">Técnico:</span> <span className="font-semibold text-blue-600">{ticket.assigned_user?.name || 'Sin asignar'}</span></div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            {/* MODAL 1: REASIGNAR TICKET */}
+            {/* ========================================== */}
+            {/* MODAL 1: MODIFICAR / REASIGNAR TICKET        */}
+            {/* ========================================== */}
             <Dialog open={openReasignar} onOpenChange={setOpenReasignar}>
-                <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
-                        <DialogTitle className="text-blue-600">Configurar Asignación</DialogTitle>
+                        <DialogTitle className="text-blue-600">Modificar Asignación y Departamento</DialogTitle>
                     </DialogHeader>
-                    {/* ... (Contenido del modal de reasignación igual al origen) ... */}
                     <div className="space-y-6 py-4">
+
+                        {/* SECCIÓN ÁREA DE ATENCIÓN */}
+                        <div className="border border-zinc-200 rounded-xl p-4 space-y-4 bg-zinc-50">
+                            <h4 className="text-xs font-bold text-zinc-500 uppercase">Área de Atención</h4>
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                <div className="space-y-1">
+                                    <Label>Departamento</Label>
+                                    <Select
+                                        value={dept}
+                                        onValueChange={(val) => {
+                                            setDept(val);
+                                            setDiv("");
+                                            setAssignData(prev => ({...prev, department_id: val, division_id: "", help_topic_id: ""}));
+                                        }}
+                                    >
+                                        <SelectTrigger><SelectValue placeholder="Seleccione..." /></SelectTrigger>
+                                        <SelectContent>
+                                            {departments?.map(d => <SelectItem key={d.id} value={d.id.toString()}>{d.name}</SelectItem>)}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div className="space-y-1">
+                                    <Label>División</Label>
+                                    <Select
+                                        value={div}
+                                        onValueChange={(val) => {
+                                            setDiv(val);
+                                            setAssignData(prev => ({...prev, division_id: val, help_topic_id: ""}));
+                                        }}
+                                        disabled={!dept}
+                                    >
+                                        <SelectTrigger><SelectValue placeholder="Seleccione..." /></SelectTrigger>
+                                        <SelectContent>
+                                            {filteredDivisions?.map(d => <SelectItem key={d.id} value={d.id.toString()}>{d.name}</SelectItem>)}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div className="space-y-1">
+                                    <Label>Tema de Ayuda</Label>
+                                    <Select
+                                        value={assignData.help_topic_id}
+                                        onValueChange={val => setAssignData("help_topic_id", val)}
+                                        disabled={!div}
+                                    >
+                                        <SelectTrigger><SelectValue placeholder="Seleccione..." /></SelectTrigger>
+                                        <SelectContent>
+                                            {filteredTopics?.map(t => <SelectItem key={t.id} value={t.id.toString()}>{t.name_topic}</SelectItem>)}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* SECCIÓN TÉCNICA */}
                         <div className="border border-zinc-200 rounded-xl p-4 space-y-4">
-                            <div className="space-y-1">
-                                <Label>Departamento</Label>
-                                <Select value={dept} onValueChange={(val) => { setDept(val); setDiv(""); setAssignData("department_id", val); }}>
-                                    <SelectTrigger><SelectValue placeholder="Seleccione..." /></SelectTrigger>
-                                    <SelectContent>
-                                        {departments.map(d => <SelectItem key={d.id} value={d.id.toString()}>{d.name}</SelectItem>)}
-                                    </SelectContent>
-                                </Select>
+                            <div className="flex justify-between items-center">
+                                <h4 className="text-xs font-bold text-zinc-500 uppercase">Detalles de Servicio</h4>
+                                {isDepartmentChanged && (
+                                    <span className="text-[10px] bg-yellow-100 text-yellow-700 px-2 py-1 rounded font-bold uppercase">
+                                        Solo Transferencia
+                                    </span>
+                                )}
                             </div>
 
-                            <div className="space-y-1">
-                                <Label>Técnico asignado</Label>
-                                <Select value={assignData.assigned_user} onValueChange={val => setAssignData("assigned_user", val)}>
-                                    <SelectTrigger><SelectValue placeholder="Seleccione..." /></SelectTrigger>
-                                    <SelectContent>
-                                        {tecnicos.map(t => <SelectItem key={t.id} value={t.id.toString()}>{t.name}</SelectItem>)}
-                                    </SelectContent>
-                                </Select>
-                            </div>
+                            {/* MENSAJE DE ADVERTENCIA SI CAMBIA DE DEPARTAMENTO */}
+                            {isDepartmentChanged && (
+                                <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 text-xs p-3 rounded-lg leading-relaxed">
+                                    <strong>Nota:</strong> Como estás transfiriendo el ticket a otro departamento, los detalles de servicio han sido bloqueados. El ticket volverá a estado "Pendiente a asignación" en su nueva área.
+                                </div>
+                            )}
 
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div className="space-y-1">
                                     <Label>Prioridad</Label>
-                                    <Select value={assignData.priority_id} onValueChange={val => setAssignData("priority_id", val)}>
+                                    <Select
+                                        value={assignData.priority_id}
+                                        onValueChange={val => setAssignData("priority_id", val)}
+                                        disabled={isDepartmentChanged}
+                                    >
                                         <SelectTrigger><SelectValue placeholder="Seleccione..." /></SelectTrigger>
                                         <SelectContent>
-                                            {priorities.map(p => <SelectItem key={p.id} value={p.id.toString()}>{p.name}</SelectItem>)}
+                                            {priorities?.map(p => <SelectItem key={p.id} value={p.id.toString()}>{p.name}</SelectItem>)}
                                         </SelectContent>
                                     </Select>
                                 </div>
+
                                 <div className="space-y-1">
                                     <Label>Plan SLA</Label>
-                                    <Select value={assignData.sla_plan_id} onValueChange={val => setAssignData("sla_plan_id", val)}>
+                                    <Select
+                                        value={assignData.sla_plan_id}
+                                        onValueChange={val => setAssignData("sla_plan_id", val)}
+                                        disabled={isDepartmentChanged}
+                                    >
                                         <SelectTrigger><SelectValue placeholder="Seleccione..." /></SelectTrigger>
                                         <SelectContent>
-                                            {slaPlans.map(s => <SelectItem key={s.id} value={s.id.toString()}>{s.name}</SelectItem>)}
+                                            {slaPlans?.map(s => <SelectItem key={s.id} value={s.id.toString()}>{s.name}</SelectItem>)}
                                         </SelectContent>
                                     </Select>
                                 </div>
+                            </div>
+
+                            <div className="space-y-1 pt-2">
+                                <Label>Técnico asignado (Opcional)</Label>
+                                <Select
+                                    value={assignData.assigned_user || "none"}
+                                    onValueChange={val => setAssignData("assigned_user", val === "none" ? "" : val)}
+                                    disabled={isDepartmentChanged}
+                                >
+                                    <SelectTrigger><SelectValue placeholder="Seleccione un técnico..." /></SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="none">Dejar sin asignar</SelectItem>
+                                        {tecnicos?.map(t => (
+                                            <SelectItem key={t.id} value={t.id.toString()}>{t.name}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
                             </div>
                         </div>
                     </div>
                     <DialogFooter>
                         <Button variant="ghost" onClick={() => setOpenReasignar(false)}>Cancelar</Button>
                         <Button onClick={submitReasignar} disabled={processingAssign} className="bg-blue-600 hover:bg-blue-700 text-white">
-                            {processingAssign ? <Loader2 className="h-4 w-4 animate-spin" /> : "Guardar Asignación"}
+                            {processingAssign ? <Loader2 className="h-4 w-4 animate-spin" /> : "Guardar Cambios"}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
 
-            {/* MODAL 2: CERRAR TICKET CON NOTA */}
+            {/* ========================================== */}
+            {/* MODAL 2: AGREGAR NOTA INTERNA                */}
+            {/* ========================================== */}
+            <Dialog open={openNota} onOpenChange={setOpenNota}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle className="text-yellow-700 flex items-center gap-2">
+                            <StickyNote className="w-5 h-5" /> Agregar Nota a Bitácora
+                        </DialogTitle>
+                    </DialogHeader>
+                    <form onSubmit={submitNota} className="space-y-4 py-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="internal_note">Escribe tu comentario o actualización (Visible solo para staff)</Label>
+                            <Textarea
+                                id="internal_note"
+                                value={noteData.internal_note}
+                                onChange={(e) => setNoteData('internal_note', e.target.value)}
+                                placeholder="El cliente llamó e indicó que el equipo fue movido a otra sala..."
+                                rows={4}
+                                required
+                            />
+                            {noteErrors.internal_note && <p className="text-sm text-red-500">{noteErrors.internal_note}</p>}
+                        </div>
+                        <DialogFooter>
+                            <Button type="button" variant="ghost" onClick={() => { setOpenNota(false); resetNote(); }}>
+                                Cancelar
+                            </Button>
+                            <Button type="submit" disabled={processingNote} className="bg-yellow-500 hover:bg-yellow-600 text-white font-bold">
+                                {processingNote ? <Loader2 className="h-4 w-4 animate-spin" /> : "Guardar Nota"}
+                            </Button>
+                        </DialogFooter>
+                    </form>
+                </DialogContent>
+            </Dialog>
+
+            {/* ========================================== */}
+            {/* MODAL 3: CERRAR TICKET ADMINISTRATIVAMENTE   */}
+            {/* ========================================== */}
             <Dialog open={openCerrar} onOpenChange={setOpenCerrar}>
                 <DialogContent>
                     <DialogHeader>
@@ -258,9 +420,9 @@ export default function ShowAsignador({ ticket, departments, divisions, helpTopi
                             <strong>Atención:</strong> Vas a finalizar este ticket. Los detalles internos quedarán registrados en el historial para auditoría.
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="internal_note">Justificación de Cierre (Nota Interna)</Label>
+                            <Label htmlFor="close_note">Justificación de Cierre (Nota Interna)</Label>
                             <Textarea
-                                id="internal_note"
+                                id="close_note"
                                 value={closeData.internal_note}
                                 onChange={(e) => setCloseData('internal_note', e.target.value)}
                                 placeholder="Escribe el motivo por el cual se procede al cierre administrativo..."

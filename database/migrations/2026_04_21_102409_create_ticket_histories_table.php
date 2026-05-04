@@ -19,7 +19,7 @@ return new class extends Migration
             $table->foreignIdFor(Ticket::class)->constrained();
             $table->foreignIdFor(User::class)->constrained();
             $table->string('action_type');
-            $table->foreignIdFor(User::class, 'assigned_user')->constrained()->nullable();
+            $table->foreignIdFor(User::class, 'assigned_user')->nullable()->constrained();
             $table->text('internal_note');
             $table->foreignIdFor(Department::class, 'previous_department')->constrained();
             $table->foreignIdFor(Department::class, 'new_department')->nullable()->constrained();
