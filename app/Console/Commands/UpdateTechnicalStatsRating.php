@@ -10,14 +10,14 @@ use App\Models\Ticket;
 use App\Models\User;
 use App\Models\Department;
 
-class UpdateTechnicalStatsRanting extends Command
+class UpdateTechnicalStatsRating extends Command
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'app:update-technical-stats-ranting';
+    protected $signature = 'app:update-technical-stats-rating';
 
     /**
      * The console command description.
