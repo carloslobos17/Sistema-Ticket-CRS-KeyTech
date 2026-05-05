@@ -26,20 +26,21 @@ export default function TicketDetails({ id }) {
     const AttachmentPreview = ({ adj }) => {
         const isImage = adj.type?.startsWith('image/');
         const isVideo = adj.type?.startsWith('video/');
-        const fileUrl = `/storage/${adj.path}`;
+        const viewUrl = `/storage/${adj.path}`;
+        const downloadUrl = `/agent/descargar-adjunto/${adj.id}`;
 
         if (isImage) {
             return (
                 <div className="group relative mt-2 w-full max-w-sm overflow-hidden rounded-lg border border-gray-200 bg-gray-50">
                     <img
-                        src={fileUrl}
+                        src={viewUrl}
                         alt={adj.name}
                         className="h-auto w-full object-cover transition-transform duration-300 group-hover:scale-105"
                     />
                     <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
                         <div className="flex gap-2">
                             <a
-                                href={fileUrl}
+                                href={viewUrl}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="flex items-center gap-2 rounded-full bg-white px-4 py-2 text-xs font-bold text-gray-800 shadow-lg hover:bg-gray-100"
@@ -47,8 +48,7 @@ export default function TicketDetails({ id }) {
                                 <Eye className="h-4 w-4" /> Ver
                             </a>
                             <a
-                                href={fileUrl}
-                                download={adj.name}
+                                href={downloadUrl}
                                 className="flex items-center gap-2 rounded-full bg-red-600 px-4 py-2 text-xs font-bold text-white shadow-lg hover:bg-red-700"
                             >
                                 <Download className="h-4 w-4" /> Bajar
@@ -66,7 +66,7 @@ export default function TicketDetails({ id }) {
             return (
                 <div className="mt-2 w-full max-w-md overflow-hidden rounded-lg border border-gray-200 bg-black">
                     <video controls className="max-h-[300px] w-full">
-                        <source src={fileUrl} type={adj.type} />
+                        <source src={viewUrl} type={adj.type} />
                         Tu navegador no soporta el tag de video.
                     </video>
                     <div className="bg-white p-2 text-[10px] font-bold text-gray-700">
@@ -86,8 +86,7 @@ export default function TicketDetails({ id }) {
                     <span className="text-[10px] text-gray-500 uppercase">{adj.type?.split('/')[1] || 'DOC'}</span>
                 </div>
                 <a
-                    href={fileUrl}
-                    download={adj.name}
+                    href={downloadUrl}
                     className="rounded-full p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-blue-600"
                     title="Descargar"
                 >

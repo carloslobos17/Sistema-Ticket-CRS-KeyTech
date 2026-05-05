@@ -390,6 +390,7 @@ class TecnicoController extends Controller
             'problema' => $ticket->subject,
             'detalles_del_problema' => $ticket->message,
             'adjuntos' => $ticket->attachments->map(fn($a) => [
+                'id' => $a->id,
                 'name' => $a->file_name,
                 'path' => $a->file_path,
                 'type' => $a->file_type
@@ -400,6 +401,7 @@ class TecnicoController extends Controller
                 'fecha' => $s->date,
                 'tipo' => $s->solutionType->name ?? 'N/A',
                 'adjuntos' => $s->attachments->map(fn($a) => [
+                    'id' => $a->id,
                     'name' => $a->file_name,
                     'path' => $a->file_path,
                     'type' => $a->file_type
@@ -623,5 +625,22 @@ class TecnicoController extends Controller
                 'message' => 'Ocurrió un error al procesar el reporte.'
             ], 500);
         }
+    }
+
+    /**
+     * Descargar un adjunto
+     */
+    public function descargarAdjunto($id)
+    {
+        $attachment = Attachment::findOrFail($id);
+        
+        $path = storage_path('app/public/' . $attachment->file_path);
+        
+        if (!file_exists($path)) {
+            Log::error("Archivo no encontrado en la ruta: " . $path);
+            abort(404, 'El archivo físico no existe en el servidor.');
+        }
+
+        return response()->download($path, $attachment->file_name);
     }
 }
