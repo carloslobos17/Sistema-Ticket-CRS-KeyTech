@@ -68,6 +68,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/ver-ticket/{id}', [TecnicoController::class, 'verTicket']);
         Route::post('/ticket/{id}/diagnostico', [TecnicoController::class, 'guardarDiagnostico']);
         Route::post('/ticket/{id}/no-resolver', [TecnicoController::class, 'noPuedeResolver']);
+        Route::get('/descargar-adjunto/{id}', [TecnicoController::class, 'descargarAdjunto'])->name('agent.descargar-adjunto');
     });
 
     // --- G. CATÁLOGOS ---

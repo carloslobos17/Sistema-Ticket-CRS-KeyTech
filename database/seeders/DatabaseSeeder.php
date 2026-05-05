@@ -6,6 +6,7 @@ use Illuminate\Database\Seeder;
 use Database\Seeders\AreaSeeder;
 use Database\Seeders\CategorySeeder;
 use Database\Seeders\DepartmentSeeder;
+use Database\Seeders\HelpTopicSeeder;
 use Database\Seeders\UserSeeder;
 
 
@@ -17,6 +18,7 @@ class DatabaseSeeder extends Seeder
             AreaSeeder::class,
             DepartmentSeeder::class,
             CategorySeeder::class,
+            HelpTopicSeeder::class,
             KnowledgeSeeder::class,
             RoleSeeder::class,
             UserSeeder::class,
