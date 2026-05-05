@@ -9,6 +9,7 @@ use Database\Seeders\DepartmentSeeder;
 use Database\Seeders\UserSeeder;
 
 
+
 class DatabaseSeeder extends Seeder
 {
     public function run(): void
@@ -25,6 +26,7 @@ class DatabaseSeeder extends Seeder
             StatusesTableSeeder::class,
             PrioritiesTableSeeder::class,
             TecnicoDataSeeder::class,
+            
         ]);
 
     }
