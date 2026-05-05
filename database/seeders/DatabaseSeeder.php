@@ -18,7 +18,6 @@ class DatabaseSeeder extends Seeder
             AreaSeeder::class,
             DepartmentSeeder::class,
             CategorySeeder::class,
-            HelpTopicSeeder::class,
             KnowledgeSeeder::class,
             RoleSeeder::class,
             UserSeeder::class,
@@ -27,6 +26,7 @@ class DatabaseSeeder extends Seeder
             StatusesTableSeeder::class,
             PrioritiesTableSeeder::class,
             TecnicoDataSeeder::class,
+            HelpTopicSeeder::class,
             SolutionTypeSeeder::class,
         ]);
 
