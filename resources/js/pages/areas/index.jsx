@@ -10,18 +10,13 @@ import { Toaster, toast } from 'sonner';
 
 export default function Areas({ areas = [] }) {
     const { flash } = usePage().props;
-
     const [selectedArea, setSelectedArea] = useState(null);
     const [isDeleteOpen, setIsDeleteOpen] = useState(false);
 
+    // Mantenemos solo el efecto de las notificaciones
     useEffect(() => {
-        if (flash?.success) {
-            toast.success(flash.success);
-        }
-
-        if (flash?.error) {
-            toast.error(flash.error);
-        }
+        if (flash?.success) toast.success(flash.success);
+        if (flash?.error) toast.error(flash.error);
     }, [flash]);
 
     const columns = [
@@ -72,6 +67,7 @@ export default function Areas({ areas = [] }) {
                     </Button>
                 </div>
 
+                {/* La tabla ahora vuelve a ocupar el espacio principal sin el buscador arriba */}
                 <GenericTable data={areas} columns={columns} />
             </div>
 
