@@ -12,26 +12,37 @@ export function useAreaActions(area = null) {
 
     // 1. LÓGICA PARA GUARDAR (POST)
     const store = (e) => {
-        e.preventDefault();
+        if (e) e.preventDefault(); // Por si se llama directamente o desde un evento
+
         form.post(route('areas.store'), {
             onSuccess: () => {
                 closeModal();
                 toast.success('Área creada con éxito');
             },
-            onError: () => toast.error('Error al crear el área'),
+            onError: () => {
+                // Aquí cambiamos el mensaje para que sea idéntico al que pediste
+                toast.error('Hubo un problema', {
+                    description: 'Por favor revisa los campos marcados en rojo.',
+                });
+            },
         });
     };
 
     // 2. LÓGICA PARA ACTUALIZAR (PUT/PATCH)
     const update = (e, areaId) => {
-        e.preventDefault();
-        // Usamos PATCH para actualizaciones parciales
+        if (e) e.preventDefault();
+
         form.patch(route('areas.update', areaId), {
             onSuccess: () => {
                 closeModal();
                 toast.success('Área actualizada con éxito');
             },
-            onError: () => toast.error('Error al actualizar el área'),
+            onError: () => {
+                // Aplicamos el mismo mensaje para la edición
+                toast.error('Hubo un problema', {
+                    description: 'Por favor revisa los campos marcados en rojo.',
+                });
+            },
         });
     };
 
@@ -43,7 +54,6 @@ export function useAreaActions(area = null) {
         });
     };
 
-    // Funciones de control de UI
     const openModal = (targetArea = null, setEditingArea) => {
         setEditingArea(targetArea);
         if (targetArea) {
@@ -60,6 +70,7 @@ export function useAreaActions(area = null) {
     const closeModal = () => {
         setIsModalOpen(false);
         form.reset();
+        form.clearErrors(); // Buena práctica: limpiar errores al cerrar el modal
     };
 
     return {

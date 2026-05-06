@@ -99,8 +99,7 @@ Route::middleware(['auth'])->group(function () {
 
     // --- G. ESTRUCTURA ORGANIZACIONAL ---
     Route::middleware(['permission:manage_areas'])->group(function () {
-        // Exceptuamos create, show y edit porque usaremos modales en React
-        Route::resource('areas', AreaController::class)->except(['create', 'show', 'edit']);
+        Route::resource('areas', AreaController::class);
     });
 });
 

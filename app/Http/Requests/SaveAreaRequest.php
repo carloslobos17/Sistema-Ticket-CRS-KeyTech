@@ -30,7 +30,9 @@ class SaveAreaRequest extends FormRequest
                 'required',
                 'string',
                 'max:75',
-                'unique:areas,name,' . $areaId
+                'unique:areas,name,' . $areaId,
+                'regex:/^(?=.*[\pL])[\pL\s0-9\-]+$/u'
+
             ],
             'description' => [
                 'nullable',
@@ -49,6 +51,7 @@ class SaveAreaRequest extends FormRequest
             'name.string'   => 'El formato del nombre no es válido.',
             'name.max'      => 'El nombre no puede superar los 75 caracteres.',
             'name.unique'   => 'Ya existe un área con este nombre registrada en el sistema.',
+            'name.regex'    => 'El nombre debe contener al menos una letra y no permite símbolos especiales (como #, $, %, etc.).',
         ];
     }
 }

@@ -24,18 +24,51 @@ class AreaController extends Controller
         ]);
     }
 
+    public function create()
+    {
+        // Buena práctica: usar nombres en minúsculas para evitar errores 404 en servidores Linux
+        return Inertia::render('areas/create');
+    }
+
     public function store(SaveAreaRequest $request)
     {
-        $this->areaService->createArea($request->validated());
+        try {
+            $this->areaService->createArea($request->validated());
 
-        return redirect()->back()->with('success', 'Área creada correctamente.');
+            return redirect()->route('areas.index')
+                ->with('success', 'Área creada correctamente.');
+        } catch (Exception $e) {
+            return redirect()->back()
+                ->with('error', 'Error al crear el área: ' . $e->getMessage());
+        }
+    }
+
+    public function show(Area $area)
+    {
+        // Estructura lista por si en el futuro se necesita ver el detalle de un área
+        return Inertia::render('areas/show', [
+            'area' => $area
+        ]);
+    }
+
+    public function edit(Area $area)
+    {
+        return Inertia::render('areas/edit', [
+            'area' => $area
+        ]);
     }
 
     public function update(SaveAreaRequest $request, Area $area)
     {
-        $this->areaService->updateArea($area, $request->validated());
+        try {
+            $this->areaService->updateArea($area, $request->validated());
 
-        return redirect()->back()->with('success', 'Área actualizada correctamente.');
+            return redirect()->route('areas.index')
+                ->with('success', 'Área actualizada correctamente.');
+        } catch (Exception $e) {
+            return redirect()->back()
+                ->with('error', 'Error al actualizar el área: ' . $e->getMessage());
+        }
     }
 
     public function destroy(Area $area)
@@ -43,11 +76,12 @@ class AreaController extends Controller
         try {
             $this->areaService->deleteArea($area);
 
-            return redirect()->back()->with('success', 'Área eliminada correctamente.');
+            return redirect()->route('areas.index')
+                ->with('success', 'Área eliminada correctamente.');
 
         } catch (Exception $e) {
-            // Intercepta la excepción del servicio y retorna el mensaje de error al frontend
-            return redirect()->back()->with('error', $e->getMessage());
+            return redirect()->route('areas.index')
+                ->with('error', $e->getMessage());
         }
     }
 }
