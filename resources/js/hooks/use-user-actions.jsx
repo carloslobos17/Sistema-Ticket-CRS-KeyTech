@@ -1,5 +1,7 @@
+// resources/js/hooks/use-user-actions.jsx
 import { router, useForm } from '@inertiajs/react';
 import { useState } from 'react';
+import { toast } from 'sonner';
 
 export function useUserActions(user = null) {
     const [isDeleting, setIsDeleting] = useState(false);
@@ -24,6 +26,11 @@ export function useUserActions(user = null) {
                 form.reset();
                 if (onSuccess) onSuccess();
             },
+            onError: () => {
+                toast.error('Error al crear usuario', {
+                    description: 'Por favor, revisa los campos marcados en rojo.',
+                });
+            },
         });
     };
 
@@ -35,6 +42,11 @@ export function useUserActions(user = null) {
             onSuccess: () => {
                 form.reset();
                 if (onSuccess) onSuccess();
+            },
+            onError: () => {
+                toast.error('Error al actualizar', {
+                    description: 'Por favor, revisa los campos marcados en rojo.',
+                });
             },
         });
     };
@@ -53,4 +65,3 @@ export function useUserActions(user = null) {
 
     return { form, store, update, destroy, isDeleting };
 }
-
