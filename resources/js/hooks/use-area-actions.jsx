@@ -12,7 +12,7 @@ export function useAreaActions(area = null) {
 
     // 1. LÓGICA PARA GUARDAR (POST)
     const store = (e) => {
-        if (e) e.preventDefault(); // Por si se llama directamente o desde un evento
+        if (e) e.preventDefault();
 
         form.post(route('areas.store'), {
             onSuccess: () => {
@@ -20,7 +20,6 @@ export function useAreaActions(area = null) {
                 toast.success('Área creada con éxito');
             },
             onError: () => {
-                // Aquí cambiamos el mensaje para que sea idéntico al que pediste
                 toast.error('Hubo un problema', {
                     description: 'Por favor revisa los campos marcados en rojo.',
                 });
@@ -38,7 +37,6 @@ export function useAreaActions(area = null) {
                 toast.success('Área actualizada con éxito');
             },
             onError: () => {
-                // Aplicamos el mismo mensaje para la edición
                 toast.error('Hubo un problema', {
                     description: 'Por favor revisa los campos marcados en rojo.',
                 });
@@ -70,7 +68,7 @@ export function useAreaActions(area = null) {
     const closeModal = () => {
         setIsModalOpen(false);
         form.reset();
-        form.clearErrors(); // Buena práctica: limpiar errores al cerrar el modal
+        form.clearErrors();
     };
 
     return {

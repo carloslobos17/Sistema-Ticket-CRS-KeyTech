@@ -20,6 +20,20 @@ class AreaService
      */
     public function createArea(array $data): Area
     {
+        // Buscamos si el área existe, incluso entre las eliminadas (Soft Deletes)
+        $area = Area::withTrashed()->where('name', $data['name'])->first();
+
+        if ($area) {
+            // Si el área existe y está eliminada, la revivimos
+            if ($area->trashed()) {
+                $area->restore();
+            }
+
+            $area->update($data);
+
+            return $area;
+        }
+
         return Area::create($data);
     }
 
@@ -37,7 +51,10 @@ class AreaService
      */
     public function deleteArea(Area $area): void
     {
-        // Validación de Integridad Referencial
+        if ($area->tickets()->count() > 0) {
+            throw new Exception('No se puede eliminar esta área porque existen tickets registrados en sus departamentos.');
+        }
+
         if ($area->departments()->count() > 0) {
             throw new Exception('No se puede eliminar esta área porque tiene departamentos asociados.');
         }

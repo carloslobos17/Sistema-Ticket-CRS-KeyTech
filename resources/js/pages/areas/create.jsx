@@ -6,7 +6,7 @@ import { useAreaActions } from '@/hooks/use-area-actions';
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link } from '@inertiajs/react';
 import { ArrowLeft, Loader2 } from 'lucide-react';
-import { Toaster } from 'sonner'; // 1. VOLVEMOS A IMPORTAR EL TOASTER
+import { Toaster } from 'sonner';
 
 export default function Create() {
     const { form, store } = useAreaActions();
@@ -26,7 +26,6 @@ export default function Create() {
                 onSubmit={submit}
                 className="flex w-full flex-1 flex-col overflow-hidden border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950"
             >
-                {/* Header Interno */}
                 <div className="flex items-center gap-4 border-b border-zinc-100 p-6 dark:border-zinc-800">
                     <Button asChild variant="ghost" size="icon" className="h-8 w-8 rounded-full">
                         <Link href={route('areas.index')}>
@@ -36,10 +35,8 @@ export default function Create() {
                     <h2 className="text-lg font-bold text-zinc-900 dark:text-zinc-50">Nueva Área</h2>
                 </div>
 
-                {/* Body - Centrado igual que usuarios */}
                 <div className="flex flex-1 items-start justify-center p-8">
                     <div className="w-full max-w-2xl space-y-8">
-                        {/* Campo: Nombre */}
                         <div className="space-y-3">
                             <Label htmlFor="name" className="text-sm font-bold text-zinc-500">
                                 Nombre
@@ -54,7 +51,6 @@ export default function Create() {
                             {errors.name && <p className="text-xs font-medium text-red-500">{errors.name}</p>}
                         </div>
 
-                        {/* Campo: Descripción */}
                         <div className="space-y-3">
                             <Label htmlFor="description" className="text-sm font-bold text-zinc-500">
                                 Descripción
@@ -71,7 +67,6 @@ export default function Create() {
                     </div>
                 </div>
 
-                {/* Footer */}
                 <div className="mt-auto border-t border-zinc-100 p-6 dark:border-zinc-800 dark:bg-zinc-900/20">
                     <div className="flex items-center justify-end gap-4">
                         <Button variant="ghost" asChild className="text-zinc-500">
