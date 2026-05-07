@@ -1,4 +1,3 @@
-/* global route */
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -7,6 +6,7 @@ import AppLayout from '@/layouts/app-layout';
 import { Head, Link } from '@inertiajs/react';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 import { translateRoleName } from '@/hooks/usePermissions';
+import { Toaster } from 'sonner';
 
 
 export default function Create({ departments = [], roles = [] }) {
@@ -20,6 +20,7 @@ export default function Create({ departments = [], roles = [] }) {
     return (
         <AppLayout>
             <Head title="Nuevo Usuario" />
+            <Toaster position="top-right" richColors />
             <form
                 onSubmit={submit}
                 className="flex w-full flex-1 flex-col overflow-hidden border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950"

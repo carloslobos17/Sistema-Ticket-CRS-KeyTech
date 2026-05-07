@@ -1,4 +1,3 @@
-/* global route */
 import DeleteEntityModal from '@/components/DeleteEntityModal';
 import { GenericTable } from '@/components/GenericTable';
 import { Button } from '@/components/ui/button';
@@ -6,17 +5,27 @@ import UserRoleBadge from '@/components/users/UserRoleBadge';
 import UserTableActions from '@/components/users/UserTableActions';
 import { usePermissions } from '@/hooks/usePermissions';
 import AppLayout from '@/layouts/app-layout';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, usePage } from '@inertiajs/react';
 import { Plus, User } from 'lucide-react';
-import { useState } from 'react';
-import { Toaster } from 'sonner';
+import { useState, useEffect } from 'react';
+import { Toaster, toast } from 'sonner';
 
 
 export default function Users({ users = [], departments = [], roles = [] }) {
+    const { flash } = usePage().props;
+
     const [selectedUser, setSelectedUser] = useState(null);
     const [isDeleteOpen, setIsDeleteOpen] = useState(false);
-
     const { hasPermission, authUser } = usePermissions();
+
+    useEffect(() => {
+        if (flash?.success) {
+            toast.success(flash.success);
+        }
+        if (flash?.error) {
+            toast.error(flash.error);
+        }
+    }, [flash]);
 
     const allColumns = [
         {
