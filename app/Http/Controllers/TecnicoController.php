@@ -80,7 +80,7 @@ class TecnicoController extends Controller
         }
 
         $queryBase = Ticket::where('assigned_user', $agent->id);
-        
+
         if ($statusPendienteRevision) {
             $queryBase->where('status_id', '!=', $statusPendienteRevision->id);
         }
@@ -93,15 +93,15 @@ class TecnicoController extends Controller
             ->whereIn('status_id', $activeStatuses);
 
         if ($search) {
-            $activeQuery->where(function($q) use ($search) {
+            $activeQuery->where(function ($q) use ($search) {
                 $q->where('subject', 'like', "%{$search}%")
-                  ->orWhere('code', 'like', "%{$search}%")
-                  ->orWhere('id', 'like', "%{$search}%");
+                    ->orWhere('code', 'like', "%{$search}%")
+                    ->orWhere('id', 'like', "%{$search}%");
             });
         }
 
         if ($statusFilter && $statusFilter !== 'Todos los estados') {
-            $activeQuery->whereHas('status', function($q) use ($statusFilter) {
+            $activeQuery->whereHas('status', function ($q) use ($statusFilter) {
                 $q->where('name', $statusFilter);
             });
         }
@@ -129,13 +129,14 @@ class TecnicoController extends Controller
             ];
         });
 
-        $historialFinalizados = (clone $queryBase)->whereIn('status_id', $terminalStatuses)
+        $historialFinalizados = (clone $queryBase)->with(['department'])
+            ->whereIn('status_id', $terminalStatuses)
             ->orderBy('updated_at', 'desc')
             ->limit(20)
             ->get();
 
         $statsQuery = clone $queryBase;
-        
+
         $countsByStatus = (clone $statsQuery)
             ->select('status_id', DB::raw('count(*) as total'))
             ->groupBy('status_id')
@@ -151,8 +152,10 @@ class TecnicoController extends Controller
             $count = $countsByStatus->get($status->id)->total ?? 0;
             $nameLower = strtolower($name);
 
-            if ((strpos($nameLower, 'resuelto') !== false || strpos($nameLower, 'cerrado') !== false)
-                && strpos($nameLower, 'no resuelto') === false) {
+            if (
+                (strpos($nameLower, 'resuelto') !== false || strpos($nameLower, 'cerrado') !== false)
+                && strpos($nameLower, 'no resuelto') === false
+            ) {
                 $totalResueltos += $count;
             }
 
@@ -416,6 +419,24 @@ class TecnicoController extends Controller
             ], 404);
         }
 
+        $statusAsignado = Status::where('name', TicketStatusEnum::ASSIGNED->value)->first();
+        $statusEnProceso = Status::where('name', TicketStatusEnum::IN_PROGRESS->value)->first();
+
+        if ($statusAsignado && $statusEnProceso && $ticket->status_id === $statusAsignado->id) {
+            $ticket->status_id = $statusEnProceso->id;
+            $ticket->save();
+
+            TicketHistory::create([
+                'ticket_id' => $ticket->id,
+                'user_id' => $agent->id,
+                'action_type' => ActionTypeEnum::STATUS_CHANGED,
+                'internal_note' => 'Estado cambiado automáticamente a "En Proceso" al ser visualizado por el técnico.',
+                'assigned_user' => $agent->id,
+            ]);
+
+            $ticket->load('status');
+        }
+
         $ticketDetallado = [
             'id' => $ticket->id,
             'estado_del_ticket' => $ticket->status->name ?? 'N/A',
@@ -676,9 +697,9 @@ class TecnicoController extends Controller
     public function descargarAdjunto($id)
     {
         $attachment = Attachment::findOrFail($id);
-        
+
         $path = storage_path('app/public/' . $attachment->file_path);
-        
+
         if (!file_exists($path)) {
             Log::error("Archivo no encontrado en la ruta: " . $path);
             abort(404, 'El archivo físico no existe en el servidor.');
