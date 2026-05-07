@@ -26,6 +26,8 @@ import {
     PlusCircle,
     List,
     HelpCircle,
+    Network,
+    Layers,
 } from 'lucide-react';
 
 // ==========================================
@@ -46,6 +48,8 @@ const ICONS = {
     PlusCircle,
     List,
     HelpCircle,
+    Network,
+    Layers,
 };
 
 // ==========================================

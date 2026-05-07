@@ -9,6 +9,7 @@ use App\Http\Controllers\SlaPlanController;
 use App\Http\Controllers\PriorityController;
 use App\Http\Controllers\TecnicoController;
 use App\Http\Controllers\TicketController;
+use App\Http\Controllers\AreaController;
 use App\Http\Controllers\QualificationController;
 use App\Http\Controllers\SolutionTypeController;
 use App\Http\Controllers\DashboardController;
@@ -90,6 +91,13 @@ Route::middleware(['auth'])->group(function () {
     });
 
     Route::post('/qualifications', [QualificationController::class, 'store']);
+
+    // --- G. ESTRUCTURA ORGANIZACIONAL ---
+    Route::middleware(['permission:manage_areas'])->group(function () {
+        Route::get('/areas/trashed', [AreaController::class, 'trashed'])->name('areas.trashed');
+        Route::put('/areas/{id}/restore', [AreaController::class, 'restore'])->name('areas.restore');
+        Route::resource('areas', AreaController::class);
+    });
 });
 
 // ==========================================
