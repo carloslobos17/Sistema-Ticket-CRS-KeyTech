@@ -8,6 +8,12 @@ use Inertia\Inertia;
 use App\Http\Controllers\SlaPlanController;
 use App\Http\Controllers\PriorityController;
 use App\Http\Controllers\TecnicoController;
+use App\Http\Controllers\TicketController;
+use App\Http\Controllers\QualificationController;
+use App\Http\Controllers\SolutionTypeController;
+use App\Http\Controllers\DashboardController;
+
+
 // ❌ Quitar: use App\Http\Controllers\TicketController;
 // ❌ Quitar: use App\Http\Controllers\TicketHistoryController;
 // ✅ Los controladores de tickets se importan dentro de tickets.php
@@ -24,9 +30,10 @@ Route::get('/faqs', [PublicController::class, 'faqs'])->name('faqs.index');
 Route::middleware(['auth'])->group(function () {
 
     // --- A. DASHBOARD PRINCIPAL ---
-    Route::get('dashboard', function () {
-        return Inertia::render('dashboard');
-    })->name('dashboard');
+    Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    // Route::get('dashboard', function () {
+    //     return Inertia::render('dashboard');
+    // })->name('dashboard');
 
     // --- B. NOTIFICACIONES ---
     Route::patch('/notifications/{id}/read', [NotificationController::class, 'markAsRead'])->name('notifications.read');
