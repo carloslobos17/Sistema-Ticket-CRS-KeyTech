@@ -15,6 +15,7 @@ class UserStoreRequest extends FormRequest
     {
         return [
             'name'          => 'required|string|max:255',
+            'institution_code' => 'nullable|string|max:50|unique:users,institution_code',
             'email'         => 'required|email|unique:users,email',
             'password'      => 'required|min:8',
             'phone_number'  => 'required|digits:8',
@@ -62,6 +63,9 @@ class UserStoreRequest extends FormRequest
 
             // Errores para 'ext'
             'ext.max' => 'La extensión no puede tener más de 10 caracteres.',
+
+            'institution_code.unique' => 'Este código institucional ya está asignado a otro usuario.',
+            'institution_code.max'    => 'El código no puede tener más de 50 caracteres.',
         ];
     }
 }

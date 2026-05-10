@@ -37,7 +37,9 @@ export default function Users({ users = [], departments = [], roles = [] }) {
                     </div>
                     <div>
                         <span className="block font-semibold">{user.name}</span>
-                        <span className="text-xs text-zinc-400">ID: {user.id}</span>
+                        <span className="text-xs text-zinc-400">
+                            {user.institution_code && ` • Cód: ${user.institution_code}`}
+                        </span>
                     </div>
                 </div>
             ),

@@ -53,6 +53,20 @@ export default function Edit({ user, departments = [], roles = [] }) {
                             </div>
 
                             <div className="space-y-3">
+                                <Label htmlFor="institution_code" className="text-sm font-bold text-zinc-500">
+                                    Código Institucional <span className="font-normal text-zinc-400">(opcional)</span>
+                                </Label>
+                                <Input
+                                    id="institution_code"
+                                    placeholder="Ej: CRS-001"
+                                    value={data.institution_code}
+                                    onChange={(e) => setData('institution_code', e.target.value)}
+                                    className="h-12 rounded-xl border-zinc-200 bg-zinc-50/30 focus-visible:ring-zinc-500 dark:border-zinc-800 dark:bg-zinc-900/30"
+                                />
+                                {errors.institution_code && <p className="text-xs font-medium text-red-500">{errors.institution_code}</p>}
+                            </div>
+
+                            <div className="space-y-3">
                                 <Label htmlFor="email" className="text-sm font-bold text-zinc-500">
                                     Correo electrónico
                                 </Label>
@@ -72,6 +86,7 @@ export default function Edit({ user, departments = [], roles = [] }) {
                                 </Label>
                                 <Input
                                     id="phone_number"
+                                    placeholder="00000000"
                                     value={data.phone_number}
                                     onChange={(e) => setData('phone_number', e.target.value)}
                                     maxLength={8}

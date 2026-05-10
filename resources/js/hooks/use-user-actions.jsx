@@ -8,6 +8,7 @@ export function useUserActions(user = null) {
 
     const form = useForm({
         name: user?.name ?? '',
+        institution_code: user?.institution_code ?? '',
         email: user?.email ?? '',
         password: '',
         phone_number: user?.phone_number ?? '',

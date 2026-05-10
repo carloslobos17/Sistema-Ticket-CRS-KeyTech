@@ -18,6 +18,7 @@ class UserUpdateRequest extends FormRequest
 
         return [
             'name'          => 'required|string|max:255',
+            'institution_code' => ['nullable', 'string', 'max:50', Rule::unique('users')->ignore($userId)],
             'email'         => ['required', 'email', Rule::unique('users')->ignore($userId)],
             'phone_number'  => 'required|digits:8',
             'birthdate'     => 'required|date',
@@ -56,6 +57,9 @@ class UserUpdateRequest extends FormRequest
             'password.min' => 'Si deseas cambiar la contraseña, debe tener al menos 8 caracteres.',
 
             'ext.max' => 'La extensión no puede exceder los 10 caracteres.',
+
+            'institution_code.unique' => 'Este código institucional ya está asignado a otro usuario.',
+            'institution_code.max'    => 'El código no puede tener más de 50 caracteres.',
         ];
     }
 }
