@@ -10,8 +10,20 @@ export function useDepartmentActions(department = null) {
         description: department?.description ?? '',
         email_department: department?.email_department ?? '',
         area_id: department?.area_id ?? '',
-        head_ids: department?.heads ? department.heads.map((h) => h.id) : [], // Extraemos solo los IDs de los jefes
+        head_ids: department?.heads ? department.heads.map((h) => h.id) : [],
     });
+
+    const toggleHead = (userId) => {
+        const currentIds = [...form.data.head_ids];
+        if (currentIds.includes(userId)) {
+            form.setData(
+                'head_ids',
+                currentIds.filter((id) => id !== userId),
+            );
+        } else {
+            form.setData('head_ids', [...currentIds, userId]);
+        }
+    };
 
     // 1. LÓGICA PARA GUARDAR (POST)
     const store = (e) => {
@@ -68,6 +80,7 @@ export function useDepartmentActions(department = null) {
         update,
         destroy,
         restore,
+        toggleHead,
         isProcessingAction,
     };
 }

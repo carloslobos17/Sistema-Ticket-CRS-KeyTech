@@ -18,10 +18,7 @@ class SaveDepartmentRequest extends FormRequest
         $departmentId = $this->route('department') ? $this->route('department')->id : null;
 
         return [
-            'name' => [
-                'required',
-                'string',
-                'max:75',
+            'name' => ['required', 'string', 'max:75',
                 function ($attribute, $value, $fail) use ($departmentId) {
                     $exists = Department::withTrashed()
                         ->where('name', $value)
@@ -36,10 +33,7 @@ class SaveDepartmentRequest extends FormRequest
                 },
                 'regex:/^(?=.*[\pL])[\pL\s0-9\-]+$/u'
             ],
-            'email_department' => [
-                'required',
-                'email',
-                'max:100',
+            'email_department' => ['required', 'email', 'max:100',
                 // Validación de unicidad incluyendo registros eliminados
                 function ($attribute, $value, $fail) use ($departmentId) {
                     $exists = Department::withTrashed()
@@ -56,8 +50,10 @@ class SaveDepartmentRequest extends FormRequest
                     }
                 }
             ],
-            'description' => ['required', 'string'],
+            'description'      => ['nullable', 'string'],
             'area_id'     => ['required', 'exists:areas,id'],
+            'head_ids'         => ['nullable', 'array'],
+            'head_ids.*'       => ['exists:users,id'],
         ];
     }
 
@@ -75,12 +71,13 @@ class SaveDepartmentRequest extends FormRequest
             'email_department.email'    => 'Debes ingresar una dirección de correo válida.',
             'email_department.max'      => 'El correo no puede exceder los 100 caracteres.',
 
-            // Mensajes para la Descripción
-            'description.required'      => 'Debes proporcionar una descripción para el departamento.',
-
             // Mensajes para el Área
             'area_id.required'          => 'Debes seleccionar un área a la que pertenezca este departamento.',
             'area_id.exists'            => 'El área seleccionada no es válida.',
+
+            // Mensajes para Jefaturas
+            'head_ids.array'            => 'El formato de los jefes asignados no es válido.',
+            'head_ids.*.exists'         => 'Uno o más usuarios seleccionados como jefes no existen.',
         ];
     }
 }

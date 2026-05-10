@@ -15,7 +15,7 @@ return new class extends Migration
         Schema::create('departments', function (Blueprint $table) {
             $table->id();
             $table->string('name', 75)->unique();
-            $table->text('description');
+            $table->text('description')->nullable();
             $table->string('email_department', 100);
             $table->foreignIdFor(Area::class)->constrained();
              $table->softDeletes();

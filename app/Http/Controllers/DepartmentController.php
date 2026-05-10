@@ -4,11 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Models\Department;
 use App\Models\Area;
+use App\Models\User;
 use App\Http\Requests\SaveDepartmentRequest;
 use App\Services\DepartmentService;
 use Inertia\Inertia;
 use Exception;
-use Illuminate\Http\RedirectResponse; // ¡Importación correcta de Laravel!
+use Illuminate\Http\RedirectResponse;
 
 class DepartmentController extends Controller
 {
@@ -28,8 +29,17 @@ class DepartmentController extends Controller
 
     public function create()
     {
+        // Obtenemos candidatos: que sean Admin,
+        $potentialHeads = User::whereHas('roles', function($q) {
+            $q->whereIn('name', ['admin']);
+        })
+            ->where('is_active', true)
+            ->with('department:id,area_id')
+            ->get(['id', 'name', 'department_id']);
+
         return Inertia::render('departments/create', [
-            'areas' => Area::all(['id', 'name'])
+            'areas'          => Area::all(['id', 'name']),
+            'potentialHeads' => $potentialHeads
         ]);
     }
 
@@ -48,12 +58,21 @@ class DepartmentController extends Controller
 
     public function edit(Department $department)
     {
+        $department->load('heads:id,name');
+
+        $potentialHeads = User::whereHas('roles', function($q) {
+            $q->whereIn('name', ['admin']);
+        })
+            ->where('is_active', true)
+            ->with('department:id,area_id')
+            ->get(['id', 'name', 'department_id']);
+
         return Inertia::render('departments/edit', [
-            'department' => $department,
-            'areas'      => Area::all(['id', 'name'])
+            'department'     => $department,
+            'areas'          => Area::all(['id', 'name']),
+            'potentialHeads' => $potentialHeads
         ]);
     }
-
     public function update(SaveDepartmentRequest $request, Department $department): RedirectResponse
     {
         try {
