@@ -221,7 +221,7 @@ export default function TicketRatingModal({ isOpen, onClose, ticket, onNext }) {
   // Vista para ticket status 7 
   if (ticket?.status?.id === 7) {
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">
         <div className="bg-white w-full max-w-md rounded-xl shadow-xl overflow-hidden">
           <div className="bg-red-600 text-white text-center py-1">
             <h1 className="text-lg font-bold">Tu Ticket se resolvio</h1>
