@@ -10,6 +10,14 @@ use Inertia\Inertia;
 use App\Http\Controllers\SlaPlanController;
 use App\Http\Controllers\PriorityController;
 use App\Http\Controllers\TecnicoController;
+use App\Http\Controllers\TicketController;
+use App\Http\Controllers\AreaController;
+use App\Http\Controllers\DepartmentController;
+use App\Http\Controllers\QualificationController;
+use App\Http\Controllers\SolutionTypeController;
+use App\Http\Controllers\DashboardController;
+
+
 // ❌ Quitar: use App\Http\Controllers\TicketController;
 // ❌ Quitar: use App\Http\Controllers\TicketHistoryController;
 // ✅ Los controladores de tickets se importan dentro de tickets.php
@@ -30,9 +38,10 @@ Route::get('/', [PublicController::class, 'index'])->name('home');
 Route::middleware(['auth'])->group(function () {
 
     // --- A. DASHBOARD PRINCIPAL ---
-    Route::get('dashboard', function () {
-        return Inertia::render('dashboard');
-    })->name('dashboard');
+    Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    // Route::get('dashboard', function () {
+    //     return Inertia::render('dashboard');
+    // })->name('dashboard');
 
     // --- B. NOTIFICACIONES ---
     Route::patch('/notifications/{id}/read', [NotificationController::class, 'markAsRead'])->name('notifications.read');
@@ -85,8 +94,27 @@ Route::middleware(['auth'])->group(function () {
 
     // --- H. GESTIÓN DE USUARIOS ---
     Route::middleware(['permission:manage_users'])->group(function () {
+        Route::get('/users/trashed', [UserController::class, 'trashed'])->name('users.trashed');
+        Route::put('/users/{id}/restore', [UserController::class, 'restore'])->name('users.restore');
+
         Route::resource('users', UserController::class);
     });
+
+    Route::post('/qualifications', [QualificationController::class, 'store']);
+
+    // --- G. ESTRUCTURA ORGANIZACIONAL ---
+    Route::middleware(['permission:manage_areas'])->group(function () {
+        Route::get('/areas/trashed', [AreaController::class, 'trashed'])->name('areas.trashed');
+        Route::put('/areas/{id}/restore', [AreaController::class, 'restore'])->name('areas.restore');
+        Route::resource('areas', AreaController::class);
+    });
+
+    Route::middleware(['permission:manage_departments'])->group(function () {
+        Route::get('/departments/trashed', [DepartmentController::class, 'trashed'])->name('departments.trashed');
+        Route::put('/departments/{id}/restore', [DepartmentController::class, 'restore'])->name('departments.restore');
+        Route::resource('departments', DepartmentController::class);
+    });
+
 
     // Knowledge
     Route::middleware(['role:superadmin'])->group(function () {

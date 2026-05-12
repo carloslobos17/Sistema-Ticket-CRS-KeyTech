@@ -35,7 +35,7 @@ export default function TicketDetails({ id }) {
                     <img
                         src={viewUrl}
                         alt={adj.name}
-                        className="h-auto w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                        className="h-48 w-full object-cover transition-transform duration-300 group-hover:scale-110"
                     />
                     <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
                         <div className="flex gap-2">
@@ -165,7 +165,7 @@ export default function TicketDetails({ id }) {
                                 </div>
                                 <div className="grid grid-cols-[100px_1fr] gap-2">
                                     <span className="font-bold text-xs text-gray-900">Area</span>
-                                    <span>{data.area_del_agent}</span>
+                                     <span>{data.division_solicitante}</span>
                                 </div>
                             </div>
 
