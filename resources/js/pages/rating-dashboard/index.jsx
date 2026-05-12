@@ -9,7 +9,8 @@ import {
     Award,
     BarChart3,
     Calendar,
-    AlertCircle
+    AlertCircle,
+    FileText
 } from 'lucide-react';
 import {
     Area,
@@ -29,6 +30,9 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import { useState } from 'react';
+import RatingExportModal from '@/components/rating-dashboard/RatingExportModal';
 
 const breadcrumbs = [
     { title: 'Dashboard', href: '/dashboard' },
@@ -65,6 +69,8 @@ export default function RatingDashboard({
     updated_at,
     error
 }) {
+    const [exportOpen, setExportOpen] = useState(false);
+
     // Normalizar rankings
     const rankings = (technicianRankings || []).map(t => ({
         ...t,
@@ -107,9 +113,19 @@ export default function RatingDashboard({
                             Análisis de desempeño y satisfacción del servicio técnico.
                         </p>
                     </div>
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground bg-white dark:bg-zinc-900 px-3 py-1.5 rounded-lg border">
-                        <Calendar className="w-4 h-4" />
-                        Última actualización: {updated_at ? new Date(updated_at).toLocaleString() : 'N/A'}
+                    <div className="flex items-center gap-3">
+                        <Button 
+                            onClick={() => setExportOpen(true)}
+                            variant="outline" 
+                            className="flex items-center gap-2"
+                        >
+                            <FileText size={16} />
+                            Descargar Reporte
+                        </Button>
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground bg-white dark:bg-zinc-900 px-3 py-1.5 rounded-lg border">
+                            <Calendar className="w-4 h-4" />
+                            Última actualización: {updated_at ? new Date(updated_at).toLocaleString() : 'N/A'}
+                        </div>
                     </div>
                 </div>
 
@@ -320,6 +336,18 @@ export default function RatingDashboard({
                     </Card>
                 </div>
             </div>
+
+            <RatingExportModal 
+                open={exportOpen} 
+                onClose={() => setExportOpen(false)} 
+                data={{
+                    stats,
+                    rankings,
+                    monthlyTrend,
+                    distribution,
+                    departmentPerformance
+                }}
+            />
         </AppLayout>
     );
 }
