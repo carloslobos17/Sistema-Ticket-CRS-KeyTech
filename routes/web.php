@@ -119,10 +119,12 @@ Route::middleware(['auth'])->group(function () {
 
     // Knowledge
     Route::middleware(['role:superadmin'])->group(function () {
+        Route::put('category/{id}/restore', [CategoryController::class, 'restore'])->name('category.restore');
         Route::resource('category', CategoryController::class);
     });
 
     Route::middleware(['role:superadmin'])->group(function () {
+        Route::put('faq/{id}/restore', [KnowledgeController::class, 'restore'])->name('faq.restore');
         Route::resource('faq', KnowledgeController::class);
     });
 });
