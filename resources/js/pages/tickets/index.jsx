@@ -19,6 +19,7 @@ export default function Index() {
     const { props } = usePage();
     const tickets = props.tickets || [];
     const auth = props.auth || { user: { permissions: [] } };
+    const canViewSLA = auth.user?.permissions?.includes('view_sla_expiration');
 
     const resolvedTickets = props.resolvedTickets || [];
 
@@ -185,17 +186,44 @@ export default function Index() {
                 );
             },
         },
-        {
+        ...(canViewSLA ? [{
             header: "Vencimiento SLA",
             className: "hidden md:table-cell",
-            render: (ticket) => (
-                <div title={getSlaRemainingTime(ticket.expiration_date, currentTime)} className={`inline-block cursor-pointer ${getSlaColorClass(ticket.expiration_date, currentTime)}`}>
-                    <span className="text-sm font-bold border-b border-dashed border-current pb-[1px]">
-                        {formatExpirationDate(ticket.expiration_date)}
-                    </span>
-                </div>
-            ),
-        },
+            render: (ticket) => {
+                if (!ticket.expiration_date) {
+                    return <span className="text-sm text-zinc-500 dark:text-zinc-400">Sin SLA</span>;
+                }
+
+                const isResolvedOrClosed = ["Resuelto", "Cerrado"].includes(ticket.status?.name);
+
+                if (isResolvedOrClosed) {
+                    const resolvedDate = new Date(ticket.resolved_at || ticket.updated_at);
+                    const expirationDate = new Date(ticket.expiration_date);
+                    const isCompliant = resolvedDate <= expirationDate;
+
+                    return (
+                        <div 
+                            title={`Vencía el: ${formatExpirationDate(ticket.expiration_date)}`}
+                            className={`inline-block px-2 py-1 rounded-full text-xs font-bold ${
+                                isCompliant 
+                                    ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' 
+                                    : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                            }`}
+                        >
+                            {isCompliant ? 'Cumplido' : 'Incumplido'}
+                        </div>
+                    );
+                }
+
+                return (
+                    <div title={getSlaRemainingTime(ticket.expiration_date, currentTime)} className={`inline-block cursor-pointer ${getSlaColorClass(ticket.expiration_date, currentTime)}`}>
+                        <span className="text-sm font-bold border-b border-dashed border-current pb-[1px]">
+                            {formatExpirationDate(ticket.expiration_date)}
+                        </span>
+                    </div>
+                );
+            },
+        }] : []),
         {
             header: "Acciones",
             className: "text-right",

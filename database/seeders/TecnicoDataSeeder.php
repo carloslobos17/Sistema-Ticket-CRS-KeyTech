@@ -46,8 +46,8 @@ class TecnicoDataSeeder extends Seeder
         $prioridadCritica = Priority::firstOrCreate(['name' => 'Crítica', 'color' => '#dc3545', 'level' => 4]);
 
         // Crear planes SLA
-        $slaBasico = SlaPlan::firstOrCreate(['name' => 'Básico', 'grace_time_hours' => 48, 'working_hours' => 9]);
-        $slaPremium = SlaPlan::firstOrCreate(['name' => 'Premium', 'grace_time_hours' => 24, 'working_hours' => 7]);
+        $slaBasico = SlaPlan::firstOrCreate(['name' => 'Básico', 'grace_time_hours' => 48, 'working_hours' => 1]);
+        $slaPremium = SlaPlan::firstOrCreate(['name' => 'Premium', 'grace_time_hours' => 24, 'working_hours' => 0]);
 
 
         // 1. BUSCAR categorías existentes (Creadas por CategorySeeder)

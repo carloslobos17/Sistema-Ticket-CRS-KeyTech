@@ -115,62 +115,57 @@ class TicketAssignmentController extends Controller
         ];
 
         // Calcular fecha de expiración sumando las horas de gracia del SLA
-        if (!empty($validated['sla_plan_id'])) {
-            $slaPlan = SlaPlan::findOrFail($validated['sla_plan_id']);
-            $currentDate = Carbon::now();
+        $slaPlan = SlaPlan::findOrFail($validated['sla_plan_id']);
 
-            if (!empty($validated['sla_plan_id'])) {
-                $slaPlan = SlaPlan::findOrFail($validated['sla_plan_id']);
-                $currentDate = Carbon::now();
-
-                if ($slaPlan->working_hours == 0) {
-                    $updateData['expiration_date'] = $currentDate->addHours($slaPlan->grace_time_hours);
-                } else {
-                    //recordar  hacer dinamico la hora de entrada al trabajo, con un env o dentro de configuraciones del sistema
-                    $workStartHour = '08:00';
-                    $workEndHour = Carbon::createFromFormat('H:i', $workStartHour)
-                        ->addHours($slaPlan->working_hours)
-                        ->format('H:i');
-
-                    $openingHours = OpeningHours::create([
-                        'monday'    => ["$workStartHour-$workEndHour"],
-                        'tuesday'   => ["$workStartHour-$workEndHour"],
-                        'wednesday' => ["$workStartHour-$workEndHour"],
-                        'thursday'  => ["$workStartHour-$workEndHour"],
-                        'friday'    => ["$workStartHour-$workEndHour"],
-                        'saturday'  => [],
-                        'sunday'    => [],
-                        // 'exceptions' => ['2026-12-25' => []] // Aquí podrías agregar feriados después
-                    ]);
-
-                    $minutesToAdd = $slaPlan->grace_time_hours * 60;
-
-                    while ($minutesToAdd > 0) {
-                        if ($openingHours->isOpenAt($currentDate)) {
-                            $nextClose = Carbon::instance($openingHours->nextClose($currentDate));
-                            $availableMinutes = $currentDate->diffInMinutes($nextClose);
-
-                            if ($minutesToAdd <= $availableMinutes) {
-                                $currentDate->addMinutes($minutesToAdd);
-                                $minutesToAdd = 0; // Terminamos
-                            } else {
-                                $minutesToAdd -= $availableMinutes;
-                                $currentDate = $nextClose; 
-                            }
-                        } else {
-                            $currentDate = Carbon::instance($openingHours->nextOpen($currentDate));
-                        }
-                    }
-
-                    $updateData['expiration_date'] = $currentDate;
-                }
-            }
+        if ($slaPlan->working_hours == 0) {
+            $updateData['expiration_date'] = Carbon::now()->addHours($slaPlan->grace_time_hours);
+        } else {
+            $updateData['expiration_date'] = $this->calculateWorkingHoursExpiration($slaPlan->grace_time_hours);
         }
-
         $ticket->update($updateData);
 
         return redirect()->back()->with('success', 'Ticket asignado y actualizado correctamente.');
     }
+
+    private function calculateWorkingHoursExpiration(int $graceHours): Carbon
+    {
+        $currentDate = Carbon::now();
+        $workStartHour = config('app.work_start', '08:00');
+        $workEndHour = config('app.work_end', '16:00');
+
+        $openingHours = OpeningHours::create([
+            'monday'    => ["$workStartHour-$workEndHour"],
+            'tuesday'   => ["$workStartHour-$workEndHour"],
+            'wednesday' => ["$workStartHour-$workEndHour"],
+            'thursday'  => ["$workStartHour-$workEndHour"],
+            'friday'    => ["$workStartHour-$workEndHour"],
+            'saturday'  => [],
+            'sunday'    => [],
+        ]);
+
+        $minutesToAdd = $graceHours * 60;
+
+        while ($minutesToAdd > 0) {
+            if (!$openingHours->isOpenAt($currentDate)) {
+                $currentDate = Carbon::instance($openingHours->nextOpen($currentDate));
+                continue;
+            }
+
+            $nextClose = Carbon::instance($openingHours->nextClose($currentDate));
+            $availableMinutes = $currentDate->diffInMinutes($nextClose);
+
+            if ($minutesToAdd <= $availableMinutes) {
+                $currentDate->addMinutes($minutesToAdd);
+                break;
+            }
+
+            $minutesToAdd -= $availableMinutes;
+            $currentDate = $nextClose->copy();
+        }
+
+        return $currentDate;
+    }
+
     public function adminClose(AdminCloseTicketRequest $request, Ticket $ticket)
     {
         $validated = $request->validated();
