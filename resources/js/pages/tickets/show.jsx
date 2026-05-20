@@ -2,6 +2,10 @@ import React from 'react';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import { Button } from '@/components/ui/button';
+import { useState } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
 import {
     ArrowLeft,
     User,
@@ -30,6 +34,10 @@ export default function Show({ ticket }) {
 
     // Solo permitimos ver la nota interna a superadmin, admin o agente
     const canViewInternalNote = userRoles.some(role => ['superadmin', 'admin', 'agent'].includes(role));
+    const [openCancelModal, setOpenCancelModal] = useState(false);
+    const [cancellationReason, setCancellationReason] = useState('');
+    const [processingCancel, setProcessingCancel] = useState(false);
+    const [cancelErrors, setCancelErrors] = useState({});
 
     const statusName = ticket.status?.name || "Sin estado";
 
@@ -44,15 +52,26 @@ export default function Show({ ticket }) {
 
     const styleClass = statusStyles[statusName] || "bg-gray-100 text-gray-700 border-gray-200";
 
-    const handleCancelTicket = () => {
-        if (confirm("¿Estás seguro de que deseas cancelar este ticket? Esta acción no se puede deshacer.")) {
-            router.put(route('tickets.cancel', ticket.id), {}, {
-                onSuccess: () => toast.success("Ticket cancelado correctamente"),
-                onError: () => toast.error("Hubo un error al cancelar el ticket")
-            });
-        }
-    };
+    const handleCancelTicket = (e) => {
+    e.preventDefault();
+    setProcessingCancel(true);
+    setCancelErrors({});
 
+    router.post(route('tickets.cancel', ticket.id), {
+        cancellation_reason: cancellationReason,
+    }, {
+        onSuccess: () => {
+            setOpenCancelModal(false);
+            setCancellationReason('');
+            setProcessingCancel(false);
+            toast.success("Ticket cancelado correctamente");
+        },
+        onError: (errors) => {
+            setCancelErrors(errors);
+            setProcessingCancel(false);
+        },
+    });
+    };
     // Tomamos la primera solución (el diagnóstico) del array que devuelve Laravel
     const diagnostico = ticket.ticketSolutions && ticket.ticketSolutions.length > 0
                         ? ticket.ticketSolutions[0]
