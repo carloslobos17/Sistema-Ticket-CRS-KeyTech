@@ -322,6 +322,51 @@ export default function Show({ ticket }) {
                     </div>
                 </div>
             </div>
+
+            {/* MODAL DE CANCELACIÓN */}
+            <Dialog open={openCancelModal} onOpenChange={setOpenCancelModal}>
+                <DialogContent className="max-w-md">
+                    <DialogHeader>
+                        <DialogTitle className="text-red-600 flex items-center gap-2">
+                            <Ban className="w-5 h-5" />
+                            Cancelar Solicitud
+                        </DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4 py-4">
+                        <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                            Esta acción retirará el ticket de la bandeja de atención. Una vez cancelado, no podrá ser reabierto.
+                        </p>
+                        <div className="space-y-2">
+                            <Label htmlFor="cancellation_reason">Motivo de la cancelación</Label>
+                            <Textarea
+                                id="cancellation_reason"
+                                value={cancellationReason}
+                                onChange={(e) => setCancellationReason(e.target.value)}
+                                placeholder="Describe el motivo por el cual deseas cancelar este ticket..."
+                                rows={4}
+                                required
+                            />
+                            {cancelErrors.cancellation_reason && (
+                                <p className="text-sm text-red-500">{cancelErrors.cancellation_reason}</p>
+                            )}
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <Button type="button" variant="ghost" onClick={() => { setOpenCancelModal(false); setCancellationReason(''); setCancelErrors({}); }}>
+                            Volver
+                        </Button>
+                        <Button
+                            type="submit"
+                            variant="destructive"
+                            disabled={processingCancel || cancellationReason.trim().length < 10}
+                            className="bg-red-600 hover:bg-red-700"
+                            onClick={handleCancelTicket}
+                        >
+                            {processingCancel ? "Cancelando..." : "Confirmar Cancelación"}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </AppLayout>
     );
 }
