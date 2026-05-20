@@ -117,7 +117,7 @@ export default function Show({ ticket }) {
                         <Button
                             variant="destructive"
                             className="bg-red-600 hover:bg-red-700 text-white font-bold w-full sm:w-auto shadow-md"
-                            onClick={handleCancelTicket}
+                            onClick={() => setOpenCancelModal(true)}
                         >
                             <Ban className="w-4 h-4 mr-2" />
                             Cancelar Solicitud
