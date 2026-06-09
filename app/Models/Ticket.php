@@ -18,9 +18,9 @@ class Ticket extends Model
         'email',
         'subject',
         'message',
-        'attach',
         'expiration_date',
         'closing_date',
+        'cancellation_reason',
         'requesting_user', //id
         'assigned_user', //id
         'help_topic_id',
@@ -81,9 +81,21 @@ class Ticket extends Model
         return $this->hasMany(TicketSolution::class);
     }
 
+    public function solutions(): HasMany
+    {
+        return $this->hasMany(TicketSolution::class);
+    }
+
+
+
     public function histories():HasMany
     {
         return $this->hasMany(TicketHistory::class)->orderBy('created_at', 'desc');
+    }
+
+   public function attachments()
+    {
+        return $this->morphMany(Attachment::class, 'attachable');
     }
 
     /**

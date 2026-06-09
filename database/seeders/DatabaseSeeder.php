@@ -3,51 +3,33 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use App\Models\Area;
-use App\Models\Department;
-use App\Models\User;
-use Illuminate\Support\Facades\Hash;
-use Spatie\Permission\Models\Role;
+use Database\Seeders\AreaSeeder;
+use Database\Seeders\CategorySeeder;
+use Database\Seeders\DepartmentSeeder;
+use Database\Seeders\HelpTopicSeeder;
+use Database\Seeders\UserSeeder;
+use Database\Seeders\PrioritiesSeeder;
+
 
 class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        Role::firstOrCreate(['name' => 'admin']);
-        Role::firstOrCreate(['name' => 'agent']);
-        Role::firstOrCreate(['name' => 'user']);
-
-        $area = Area::factory()->create([
-            'name' => 'Administrativa',
-            'description' => 'Área encargada de la gestión administrativa',
-        ]);
-
-        $department = Department::factory()->create([
-            'name' => 'Administración',
-            'description' => 'Departamento de administración general',
-            'email_department' => 'admin@empresa.com',
-            'area_id' => $area->id,
-        ]);
-
         $this->call([
+            AreaSeeder::class,
+            DepartmentSeeder::class,
+            CategorySeeder::class,
+            KnowledgeSeeder::class,
+            RoleSeeder::class,
+            UserSeeder::class,
             UserRoleSeeder::class,
+            DepartmentHeadSeeder::class,
+            StatusesTableSeeder::class,
+            PrioritiesSeeder::class,
+            TecnicoDataSeeder::class,
+            HelpTopicSeeder::class,
+            SolutionTypeSeeder::class,
         ]);
-
-        $user = User::factory()->create([
-            'name' => 'Admin Admin',
-            'email' => 'admin@admin.com',
-            'phone_number' => '00000000',
-            'ext' => null,
-            'birthdate' => '1990-01-01',
-            'password' => Hash::make('123'),
-            'is_active' => true,
-            'department_id' => $department->id,
-            'email_verified_at' => now(),
-        ]);
-
-        $user->assignRole('admin');
-
-
 
     }
 }

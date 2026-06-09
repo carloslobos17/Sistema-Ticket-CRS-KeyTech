@@ -8,6 +8,7 @@ import { Plus, Search, Pencil, Trash2, Clock } from "lucide-react";
 import DeleteEntityModal from "@/components/DeleteEntityModal";
 import { GenericTable } from "@/components/GenericTable";
 
+
 const breadcrumbs = [
     { title: "Dashboard", href: "/dashboard" },
     { title: "Planes SLA", href: "/sla-plans" },
@@ -130,6 +131,14 @@ export default function Index() {
                             <Button asChild className="bg-zinc-900 dark:bg-zinc-50 dark:text-zinc-900">
                                 <Link href="/sla-plans/create">
                                     <Plus className="mr-2 h-4 w-4" /> Nuevo
+                                </Link>
+                            </Button>
+                        )}
+
+                        {hasPermission("eliminar plan_sla") && (
+                            <Button asChild variant="outline">
+                                <Link href="/sla-plans/trashed">
+                                    <Trash2 className="mr-2 h-4 w-4" /> Ver Borrados
                                 </Link>
                             </Button>
                         )}

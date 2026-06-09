@@ -2,59 +2,88 @@ import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
-import { Link } from '@inertiajs/react';
-import { BookOpen, Clock, Folder, LayoutGrid, ListChecks, Users } from 'lucide-react';
+import { usePage, Link } from '@inertiajs/react';
+import { BookOpen, Clock, Folder, LayoutGrid, ListChecks, Users, Ticket, HelpCircle, History, Star } from 'lucide-react'; // Agregados Ticket y HelpCircle
 
 import AppLogo from './app-logo';
 
-
 const mainNavItems = [
     {
-        title: 'Dashboard',
-        url: '/dashboard',
+        title: 'Dashboards',
         icon: LayoutGrid,
+        children: [
+            {
+                title: 'General',
+                url: '/dashboard',
+                icon: LayoutGrid,
+            },
+            {
+                title: 'Rating Técnicos',
+                url: '/ratings-dashboard',
+                icon: Star,
+                role: 'superadmin',
+            },
+        ],
     },
-
+    {
+        title: 'Mis Tickets',
+        url: '/tickets',          // Ruta típica para tickets del usuario
+        icon: Ticket,
+        permission: 'ver tickets'          // Ícono de ticket
+    },
+    {
+        title: 'FAQs',
+        url: '/faqs',             // Ruta para preguntas frecuentes
+        icon: HelpCircle,         // Ícono de ayuda
+    },
     {
         title: 'Ticket',
         icon: ListChecks,
         children: [
             {
-            title: 'Prioridades',
-            url: '/priorities',
-            icon: ListChecks
+                title: 'Prioridades',
+                url: '/priorities',
+                icon: ListChecks,
+                permission: 'ver prioridades'
             },
             {
                 title: 'Planes SLA',
                 url: '/sla-plans',
                 icon: Clock,
+                permission: 'ver sla plans'
             },
         ]
     },
-
     {
         title: 'Usuarios',
         url: '/users',
         icon: Users,
-    },
-
-
-];
-
-const footerNavItems = [
-    {
-        title: 'Repository',
-        url: 'https://github.com/laravel/react-starter-kit',
-        icon: Folder,
-    },
-    {
-        title: 'Documentation',
-        url: 'https://laravel.com/docs/starter-kits',
-        icon: BookOpen,
+        permission: 'ver usuarios'
     },
 ];
+
+function filterNavItems(items, hasPermission, userRoles) {
+    return items
+        .filter(item => {
+            const permissionMatch = !item.permission || hasPermission(item.permission);
+            const roleMatch = !item.role || userRoles.includes(item.role);
+            return permissionMatch && roleMatch;
+        })
+        .map(item =>
+            item.children
+                ? { ...item, children: filterNavItems(item.children, hasPermission, userRoles) }
+                : item
+        )
+        .filter(item => !item.children || item.children.length > 0);
+}
 
 export function AppSidebar() {
+    const { auth } = usePage().props;
+    const userPermissions = auth?.user?.permissions || [];
+    const userRoles = auth?.user?.roles || [];
+    const hasPermission = (perm) => userPermissions.includes(perm);
+    const filteredNavItems = filterNavItems(mainNavItems, hasPermission, userRoles);
+
     return (
         <Sidebar collapsible="icon" variant="inset">
             <SidebarHeader>
@@ -70,13 +99,13 @@ export function AppSidebar() {
             </SidebarHeader>
 
             <SidebarContent>
-                <NavMain items={mainNavItems} />
+                <NavMain items={filteredNavItems} />
             </SidebarContent>
 
-            <SidebarFooter>
-                <NavFooter items={footerNavItems} className="mt-auto" />
+            {/* Opcional: si quieres agregar el footer con el usuario */}
+            {/* <SidebarFooter>
                 <NavUser />
-            </SidebarFooter>
+            </SidebarFooter> */}
         </Sidebar>
     );
 }

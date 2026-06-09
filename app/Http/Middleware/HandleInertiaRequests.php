@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
+use Illuminate\Support\Facades\Log;
 
 class HandleInertiaRequests extends Middleware
 {
@@ -36,20 +37,117 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
-        [$message, $author] = str(Inspiring::quotes()->random())->explode('-');
+        $user = $request->user();
+        $nav = [];
 
-        return array_merge(parent::share($request), [
+        if ($user) {
+            // ==========================================
+            // 1. DASHBOARD SEGÚN ROL
+            // ==========================================
+            if ($user->hasRole('superadmin')) {
+                $nav[] = [
+                    'title' => 'Dashboards',
+                    'icon' => 'LayoutGrid',
+                    'items' => [
+                        ['title' => 'General', 'url' => route('dashboard'), 'icon' => 'LayoutGrid'],
+                        ['title' => 'Rating Técnicos', 'url' => route('ratings.dashboard'), 'icon' => 'Star'],
+                    ]
+                ];
+            } elseif ($user->hasRole('admin')) {
+                $nav[] = ['title' => 'Panel de Área', 'url' => route('dashboard'), 'icon' => 'LayoutGrid'];
+            } elseif ($user->hasRole('agent')) {
+                $nav[] = ['title' => 'Mi Panel Técnico', 'url' => route('dashboard'), 'icon' => 'LayoutGrid'];
+            } elseif ($user->hasRole('user')) {
+                $nav[] = ['title' => 'Mis Solicitudes', 'url' => route('dashboard'), 'icon' => 'LayoutGrid'];
+            }
+
+            // ==========================================
+            // 2. SECCIÓN DE TICKETS (según permisos)
+            // ==========================================
+
+            // 2.1 Ver mis propios tickets (todos los autenticados)
+            // Asumimos un permiso 'view_own_tickets' o simplemente lo mostramos a todos.
+            // Para mayor control, puedes usar $user->can('view_own_tickets')
+            if ($user->can('view_own_tickets')) {
+                $nav[] = ['title' => 'Mis Tickets', 'url' => route('tickets.my'), 'icon' => 'Ticket'];
+            }
+
+
+            // 2.3 Ver todos los tickets (solo roles con permiso 'view_all_tickets')
+            if ($user->can('view_all_tickets')) {
+                $nav[] = ['title' => 'Todos los Tickets', 'url' => route('tickets.index'), 'icon' => 'List'];
+            }
+
+            // 2.4 Tickets pendientes de asignación (permiso existente)
+            if ($user->can('assign_tickets')) {
+                $nav[] = ['title' => 'Pendientes', 'url' => route('tickets.unassigned'), 'icon' => 'ClipboardList'];
+            }
+
+            // ==========================================
+            // 3. FAQs (Acceso solo para superadmin)
+            // ==========================================
+            if ($user->hasRole('superadmin')) {
+                $nav[] = ['title' => 'FAQs', 'url' => route('faq.index'), 'icon' => 'BookOpen'];
+            }
+
+
+            // ==========================================
+            // 4. CONFIGURACIÓN (Submenú agrupado)
+            // ==========================================
+            if ($user->hasPermissionTo('manage_catalogs')) {
+                $nav[] = [
+                        'title' => 'Planes SLA', 'url' => route('sla-plans.index'), 'icon' => 'FileText'
+                ];
+            }
+
+
+            // ==========================================
+            // 5. USUARIOS (permiso específico)
+            // ==========================================
+            if ($user->hasPermissionTo('manage_users')) {
+                $nav[] = ['title' => 'Usuarios', 'url' => route('users.index'), 'icon' => 'Users'];
+            }
+
+
+            // ==========================================
+            // 6. ESTRUCTURA ORGANIZACIONAL (NUEVO)
+            // ==========================================
+            if ($user->hasPermissionTo('manage_areas')) {
+                $nav[] = [
+                    'title' => 'Estructura',
+                    'icon'  => 'Network',
+                    'items' => [
+                        [
+                            'title' => 'Áreas',
+                            'url'   => route('areas.index'),
+                            'icon'  => 'Layers'
+                        ],
+                        [
+                            'title' => 'Departamentos',
+                            'url'   => route('departments.index'),
+                            'icon'  => 'Building'
+                        ],
+                    ]
+                ];
+            }
+        }
+
+        return [
             ...parent::share($request),
-            'name' => config('app.name'),
-            'quote' => ['message' => trim($message), 'author' => trim($author)],
             'auth' => [
-                'user' => $request->user()
-                    ? array_merge(
-                        $request->user()->toArray(), // <-- todos los campos del usuario
-                        ['permissions' => $request->user()->getAllPermissions()->pluck('name')->toArray()]
-                    )
-                    :null,
+                'user' => $user ? array_merge($user->toArray(), [
+                    'roles' => $user->getRoleNames()->toArray(),
+                    'permissions' => $user->getAllPermissions()->pluck('name')->toArray()
+                ]) : null,
             ],
-        ]);
+            'navigation' => $nav,
+            'flash' => [
+                'success' => fn () => $request->session()->get('success'),
+                'error' => fn () => $request->session()->get('error'),
+            ],
+            'notifications' => fn () => $request->user()
+                ? $request->user()->unreadNotifications
+                : [],
+        ];
     }
 }

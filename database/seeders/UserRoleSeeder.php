@@ -2,48 +2,30 @@
 
 namespace Database\Seeders;
 
+use App\Models\User;
 use Illuminate\Database\Seeder;
-use Spatie\Permission\Models\Permission;
-use Spatie\Permission\Models\Role;
 
 class UserRoleSeeder extends Seeder
 {
-    public function run()
+    public function run(): void
     {
-        // Reset cached roles and permissions
-        app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+        // Asignar Super Admin
+        User::where('email', 'admin@admin.com')->first()?->syncRoles(['superadmin']);
 
-        // Definir todos los permisos necesarios
-        $permissions = [
-            // Prioridades
-            'crear prioridad',
-            'editar prioridad',
-            'eliminar prioridad',
-            // Planes SLA
-            'crear plan_sla',
-            'editar plan_sla',
-            'eliminar plan_sla',
-            // Otros que necesites
-            'ver dashboard',
-            'gestionar usuarios',
-        ];
+        // Asignar Administradores de Área
+        User::whereIn('email', ['admin.soporte@empresa.com', 'admin.sistemas@empresa.com'])
+            ->get()
+            ->each(fn($user) => $user->syncRoles(['admin']));
 
-        // Crear cada permiso si no existe
-        foreach ($permissions as $perm) {
-            Permission::firstOrCreate(['name' => $perm]);
-        }
+        // Asignar Agentes (Técnicos)
+        User::whereIn('email', ['tecnico1@empresa.com', 'tecnico2@empresa.com'])
+            ->get()
+            ->each(fn($user) => $user->syncRoles(['agent']));
 
-        // Obtener el rol admin (debe existir, lo creaste en DatabaseSeeder)
-        $adminRole = Role::findByName('admin');
+        // Asignar Usuarios Solicitantes
+        User::whereIn('email', ['juan.perez@empresa.com', 'ana.martinez@empresa.com'])
+            ->get()
+            ->each(fn($user) => $user->syncRoles(['user']));
 
-        // Asignar TODOS los permisos al admin
-        $adminRole->syncPermissions($permissions);
-
-        // Opcional: asignar algunos permisos a otros roles
-        $agentRole = Role::findByName('agent');
-        $agentRole->syncPermissions([
-            'crear prioridad',
-            'ver dashboard',
-        ]);
     }
 }
