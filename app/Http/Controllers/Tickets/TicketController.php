@@ -8,12 +8,13 @@ use App\Models\Department;
 use App\Models\Division;
 use App\Models\HelpTopic;
 use App\Models\Ticket;
-use App\Models\TicketSolution;
 use Illuminate\Support\Carbon;
 use Inertia\Inertia;
 use App\Notifications\NewTicketNotification;
+use App\Notifications\TicketCreatedNotification;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Notification;
 use App\Actions\AddInternalNoteAction;
 use App\Actions\GenerateTicketCodeAction;
 use App\Http\Controllers\Controller;
@@ -279,6 +280,10 @@ class TicketController extends Controller
                 
             }
         }
+
+        // Notificar al creador del ticket (Confirmación)
+        Notification::send(Auth::user(), new TicketCreatedNotification($ticket));
+
         $department = Department::with('heads')->find($ticket->department_id);
         if ($department && $department->heads->count()) {
             foreach ($department->heads as $head) {

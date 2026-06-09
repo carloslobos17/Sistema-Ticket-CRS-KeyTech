@@ -4,9 +4,11 @@ namespace App\Notifications;
 
 use App\Models\Ticket;
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class TicketResolvedNotification extends Notification
+class TicketResolvedNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
@@ -28,7 +30,20 @@ class TicketResolvedNotification extends Notification
     public function via($notifiable): array
     {
         // Por ahora solo base de datos (campanita web)
-        return ['database'];
+        return ['mail', 'database'];
+    }
+
+    public function toMail($notifiable)
+    {
+        $url = route('tickets.show', $this->ticket->id) . '?rating=true'; 
+
+        return (new MailMessage)
+            ->subject('Ticket resuelto: ' . $this->ticket->code)
+            ->line('Tu ticket ha sido resuelto.')
+            ->line('Asunto: ' . $this->ticket->subject)
+            ->line('Solicitante: ' . $this->ticket->requestingUser->name)
+            ->action('Calificar solución', $url)
+            ->line('Por favor, revísalo para la calificación de la solución.');
     }
 
     /**

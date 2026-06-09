@@ -4,10 +4,11 @@ namespace App\Notifications;
 
 use App\Models\Ticket;
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue; 
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class NewTicketNotification extends Notification
+class NewTicketNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
@@ -20,7 +21,12 @@ class NewTicketNotification extends Notification
 
     public function via($notifiable)
     {
-        return ['mail', 'database'];
+        // Solo enviamos correo si el usuario es jefe del departamento asociado al ticket.
+        $isHead = $notifiable->headedDepartments()
+            ->where('departments.id', $this->ticket->department_id)
+            ->exists();
+        
+        return $isHead ? ['mail', 'database'] : ['database'];
     }
 
     public function toMail($notifiable)

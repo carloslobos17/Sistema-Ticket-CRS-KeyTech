@@ -31,13 +31,13 @@ class TicketCreatedNotification extends Notification implements ShouldQueue
         $url = route('tickets.show', $this->ticket->id);
 
         return (new MailMessage)
-            ->subject('Nuevo ticket creado: ' . $this->ticket->code)
+            ->subject('Confirmación de Ticket: ' . $this->ticket->code)
             ->greeting('Hola ' . $notifiable->name)
-            ->line('Se ha creado un nuevo ticket en el sistema.')
+            ->line('Hemos recibido tu solicitud de soporte.')
             ->line('Asunto: ' . $this->ticket->subject)
-            ->line('Solicitante: ' . ($this->ticket->requestingUser?->name ?? $this->ticket->email))
-            ->action('Ver y asignar ticket', $url)
-            ->line('Por favor, asigna este ticket al técnico correspondiente.');
+            ->line('Número de Ticket: ' . $this->ticket->code)
+            ->action('Ver estado de mi ticket', $url)
+            ->line('Te notificaremos cuando haya una actualización sobre tu caso.');
     }
 
     // Datos que se guardan en la tabla notifications (BD)
@@ -47,8 +47,9 @@ class TicketCreatedNotification extends Notification implements ShouldQueue
             'ticket_id' => $this->ticket->id,
             'ticket_code' => $this->ticket->code,
             'subject' => $this->ticket->subject,
-            'message' => 'Nuevo ticket creado. Revisa y asígnalo.',
-            'type' => 'new_ticket'
+            'message' => "Tu ticket #{$this->ticket->code} ha sido creado exitosamente.",
+            'type' => 'ticket_created',
+            'url' => route('tickets.show', $this->ticket->id),
         ];
     }
 }

@@ -108,7 +108,7 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware(['role:superadmin'])->group(function () {
         Route::resource('faq', KnowledgeController::class);
 
-    Route::post('/qualifications', [QualificationController::class, 'store']);
+    //Route::post('/qualifications', [QualificationController::class, 'store']);
 
     // --- G. ESTRUCTURA ORGANIZACIONAL ---
     Route::middleware(['permission:manage_areas'])->group(function () {

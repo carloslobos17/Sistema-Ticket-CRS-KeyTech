@@ -105,26 +105,6 @@ class TicketObserver
     }
 
     /**
-     * Se ejecuta después de que los cambios se han guardado en la base de datos.
-     */
-    public function updated(Ticket $ticket): void
-    {
-        // NOTIFICAR AL USUARIO CUANDO EL TICKET SE RESUELVE O CIERRA
-        if ($ticket->wasChanged('status_id')) {
-            $newStatus = Status::find($ticket->status_id);
-            
-            if (
-                $newStatus &&
-                in_array($newStatus->name, ['Resuelto', 'Cerrado']) &&
-                $ticket->requestingUser &&
-                $ticket->requesting_user !== Auth::id()
-            ) {
-                $ticket->requestingUser->notify(new TicketResolvedNotification($ticket));
-            }
-        }
-    }
-
-    /**
      * Verifica el cumplimiento del SLA y registra el evento correspondiente.
      */
     private function checkAndLogSlaCompliance(Ticket $ticket): void
